@@ -38,12 +38,37 @@ jobs:
       - checkout
       - run: cd frontend && npm install
       - run: cd frontend && npm run test
+      - run:
+          command: |
+            mkdir -p ~/reports
+            eslint ./src/ --format junit --output-file ~/reports/frontendeslint.xml
+          when: always
       - store_test_results:
-          path: /tmp/test-results
+          path: ~/reports
+      - store_artifacts:
+          path: ~/reports   
 
-#  est-backend:
+  est-backend:
+    docker:
+      - image: circleci/node:13.8.0
+    working_directory: ~/backend/test
+    steps:
+      - checkout
+      - run: cd backend && npm install
+      - run: cd backend && npm run test
+      - run: cd backend && npm run test:e2e
+      - run: cd backend && npm run test:cov
+      - run:
+          command: |
+            mkdir -p ~/reports
+            eslint ./src/ --format junit --output-file ~/reports/backendeslint.xml
+          when: always
+      - store_test_results:
+          path: ~/reports
+      - store_artifacts:
+          path: ~/reports 
 
-#  can-frontend:
+#  scan-frontend:
 
 #  scan-backend:
 
