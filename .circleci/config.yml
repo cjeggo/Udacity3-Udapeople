@@ -32,14 +32,22 @@ jobs:
 
   test-frontend:
     docker:
-      - image: circleci/node:13.8.0
-    working_directory: ~/frontend
+      - image: circleci/node
     steps:
       - checkout
-      - run: cd frontend && npm install
-      - run: cd frontend && npm run format
-      # - run: cd frontend && npm run lint --fix
-      - run: cd frontend && sudo npm test
+      - install-dependencies:
+          layer: "frontend"
+      - run:
+          name: Unit test frontend
+          command: |
+            cd frontend
+            mkdir -p ./reports/junit/
+            npm install --save-dev jest-junit jest-junit-reporter
+            ./node_modules/.bin/jest --ci --runInBand --reporters=default --reporters=jest-junit
+          environment:
+            JEST_JUNIT_OUTPUT_DIR: "./reports/junit/"
+      - store_test_results:
+          path: ./frontend/reports/junit/
 
   test-backend:
     docker:
