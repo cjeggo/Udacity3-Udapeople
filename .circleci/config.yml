@@ -35,8 +35,8 @@ jobs:
       - image: circleci/node
     steps:
       - checkout
-      - install-dependencies:
-          layer: "frontend"
+      # - install-dependencies:
+      #     layer: "frontend"
       - run:
           name: Unit test frontend
           command: |
