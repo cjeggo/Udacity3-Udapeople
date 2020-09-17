@@ -27,8 +27,8 @@ jobs:
     working_directory: ~/backend
     steps:
       - checkout
-      - run: npm install
-      - run: npm run lint
+      - run: cd backend && npm install
+      - run: cd backend && npm run lint
 
 #  test-frontend:
 
