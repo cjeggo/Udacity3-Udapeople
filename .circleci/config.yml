@@ -48,7 +48,7 @@ jobs:
       - store_artifacts:
           path: ~/reports   
 
-  est-backend:
+  test-backend:
     docker:
       - image: circleci/node:13.8.0
     working_directory: ~/backend/test
@@ -92,3 +92,4 @@ workflows:
       - build-frontend
       - build-backend
       - test-frontend
+      - test-backend
