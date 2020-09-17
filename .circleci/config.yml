@@ -12,19 +12,23 @@ version: 2.1
 #     ...
 
 jobs:
-  hello-world: # Delete this job when you get started
+  build-frontend:
     docker:
-      - image: amazon/aws-cli
+      - image: circleci/node:13.8.0
+    working_directory: ~/frontend
     steps:
       - checkout
-      - run:
-          name: Say Hello
-          command: |
-            echo "Hello World"
+      - run: npm install
+      - run: npm run lint
 
-#  build-frontend:
-
-#  build-frontend:
+  build-backend:
+    docker:
+      - image: circleci/node:13.8.0
+    working_directory: ~/backend
+    steps:
+      - checkout
+      - run: npm install
+      - run: npm run lint
 
 #  test-frontend:
 
