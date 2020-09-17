@@ -33,7 +33,7 @@ jobs:
   test-frontend:
     docker:
       - image: circleci/node:13.8.0
-    working_directory: ~/frontend/test
+    working_directory: ~/frontend
     steps:
       - checkout
       - run: cd frontend && npm install
@@ -70,9 +70,11 @@ jobs:
 #  cloudfront-update:
 
 workflows:
-  default:
+  build:
     jobs:
       - build-frontend
       - build-backend
+  test:
+    jobs:
       - test-frontend
       - test-backend
