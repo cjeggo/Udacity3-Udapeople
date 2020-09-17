@@ -37,7 +37,7 @@ jobs:
     steps:
       - checkout
       - run: cd frontend && npm install
-      - run: cd frontend && npm run test
+      - run: npm run test
 
   test-backend:
     docker:
@@ -70,11 +70,11 @@ jobs:
 #  cloudfront-update:
 
 workflows:
-  build:
-    jobs:
-      - build-frontend
-      - build-backend
+  # build:
+    # jobs:
+      # - build-frontend
+      # - build-backend
   test:
     jobs:
       - test-frontend
-      - test-backend
+      # - test-backend
