@@ -30,7 +30,16 @@ jobs:
       - run: cd backend && npm install
       - run: cd backend && npm run lint
 
-#  test-frontend:
+  test-frontend:
+    docker:
+      - image: circleci/node:13.8.0
+    working_directory: ~/frontend
+    steps:
+      - checkout
+      - run: cd frontend && npm install
+      - run: cd frontend && npm run test
+      - store_test_results:
+          path: /tmp/test-results
 
 #  est-backend:
 
