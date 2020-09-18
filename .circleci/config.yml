@@ -15,11 +15,6 @@ commands:
             cd << parameters.end >>
             npm i
   
-    slack-notifier:
-      steps:
-        - slack/notify:
-            failure_message
-            url
 
 # commands:
 #   destroy-environment:
@@ -129,7 +124,9 @@ jobs:
           command: |
             cd backend
             npm audit --audit-level=critical
-      - slack-notifier
+      - slack/notify:
+            failure_message
+            url
 
 #  deploy-infrastructure:
 
