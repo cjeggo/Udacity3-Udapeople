@@ -15,6 +15,17 @@ commands:
             cd << parameters.end >>
             npm i
 
+  aws-describe:
+    parameters:
+      end:
+        type: string
+    steps:
+      - run: 
+          name: Install << parameters.end >> dependencies
+          command: |
+            aws cloudformation describe-stack-events --stack-name "<< parameters.end >>-${CIRCLE_WORKFLOW_ID:0:7}"
+
+
 # commands:
 #   destroy-environment:
 #     description: Destroy backend and frontend cloudformation stacks given a workflow ID.
@@ -141,6 +152,9 @@ jobs:
               --template-file backend.yml \
               --stack-name "backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="backend-deployment-${CIRCLE_WORKFLOW_ID:0:7}"
+      - aws-describe:
+          end: backend
+          when: on_fail
       - run:
           name: Save URL
           command: |
@@ -166,10 +180,8 @@ jobs:
               --stack-name "frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="frontend-deployment-${CIRCLE_WORKFLOW_ID:0:7}" \
               --tags project=udacity
-      - run:
-          name: On failure
-          command: |
-            aws cloudformation describe-stack-events --stack-name "frontend-${CIRCLE_WORKFLOW_ID:0:7}"
+      - aws-describe:
+          end: frontend
           when: on_fail
       - slack/notify-on-failure
 
