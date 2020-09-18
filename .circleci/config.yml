@@ -14,6 +14,12 @@ commands:
           command: |
             cd << parameters.end >>
             npm i
+  
+    slack-notifier:
+      steps:
+        - slack/notify:
+            failure_message
+            url
 
 # commands:
 #   destroy-environment:
@@ -39,7 +45,7 @@ jobs:
           name: Building Frontend
           command: | 
             cd frontend && npm run build
-      - slack/status
+      - slack/notify-on-failure
 
 
   build-backend:
@@ -54,6 +60,7 @@ jobs:
           name: Building Backend
           command: |
             cd backend && npm run build
+      - slack/notify-on-failure
 
 
   test-frontend:
@@ -74,6 +81,7 @@ jobs:
             JEST_JUNIT_OUTPUT_DIR: "./reports/junit/"
       - store_test_results:
           path: ./frontend/reports/junit/
+      - slack/notify-on-failure
 
   test-backend:
     docker:
@@ -93,6 +101,7 @@ jobs:
             JEST_JUNIT_OUTPUT_DIR: "./reports/junit/"
       - store_test_results:
           path: ./backend/reports/junit/
+      - slack/notify-on-failure
 
   audit-frontend:
     docker:
@@ -102,10 +111,11 @@ jobs:
       - npm-install:
           end: "frontend"
       - run:
-          name: Test Frontend
+          name: Audit Frontend
           command: |
             cd frontend
             npm audit --audit-level=critical
+      - slack/notify-on-failure
 
   audit-backend:
     docker:
@@ -115,10 +125,11 @@ jobs:
       - npm-install:
           end: "backend"
       - run:
-          name: Test Backend
+          name: Audit Backend
           command: |
             cd backend
             npm audit --audit-level=critical
+      - slack-notifier
 
 #  deploy-infrastructure:
 
