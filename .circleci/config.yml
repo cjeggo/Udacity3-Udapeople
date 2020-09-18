@@ -139,12 +139,12 @@ jobs:
             cd .circleci/files
             aws cloudformation deploy \
               --template-file backend.yml \
-              --stack-name "backend-${CIRCLE_WORKFLOW_ID}" \
-              --parameter-overrides ID="backend-deployment-${CIRCLE_WORKFLOW_ID}"
+              --stack-name "backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="backend-deployment-${CIRCLE_WORKFLOW_ID:0:7}"
       - run:
           name: Save URL
           command: |
-            aws ec2 describe-instances --filters "Name=tag:Name,Values=backend-backend-deployment-${CIRCLE_WORKFLOW_ID}" \
+            aws ec2 describe-instances --filters "Name=tag:Name,Values=backend-backend-deployment-${CIRCLE_WORKFLOW_ID:0:7}" \
               --query "Reservations[*].Instances[*].[PublicDnsName]" \
               --output text > /tmp/saveme/backend_url.txt
       - persist_to_workspace:
@@ -169,7 +169,7 @@ jobs:
       - run:
           name: On failure
           command: |
-            aws cloudformation describe-stack-events --stack-name "frontend-${CIRCLE_WORKFLOW_ID}"
+            aws cloudformation describe-stack-events --stack-name "frontend-${CIRCLE_WORKFLOW_ID:0:7}"
           when: on_fail
       - slack/notify-on-failure
 
@@ -199,4 +199,3 @@ workflows:
   Deploy Infra:
     jobs:
       - deploy-infrastructure
-
