@@ -198,4 +198,11 @@ workflows:
       - audit-backend
   Deploy Infra:
     jobs:
-      - deploy-infrastructure
+      - deploy-infrastructure:
+          requires:
+          - build-frontend
+          - build-backend
+          - test-frontend
+          - test-backend
+          - audit-frontend
+          - audit-backend
