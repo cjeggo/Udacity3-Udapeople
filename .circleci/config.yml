@@ -26,21 +26,21 @@ commands:
 jobs:
   build-frontend:
     docker:
-      - image: circleci/node:13.8.0
+      - image: circleci/node
     working_directory: ~/frontend
     steps:
       - checkout
-      - run: cd frontend && npm install
-      - run: cd frontend && npm run lint --fix
+      - run: cd frontend && npm run build
+
 
   build-backend:
     docker:
-      - image: circleci/node:13.8.0
+      - image: circleci/node
     working_directory: ~/backend
     steps:
       - checkout
-      - run: cd backend && npm install
-      - run: cd backend && npm run lint
+      - run: cd backend && npm run build
+
 
   test-frontend:
     docker:
@@ -50,7 +50,7 @@ jobs:
       - install-dependencies:
           layer: "frontend"
       - run:
-          name: Unit test frontend
+          name: Test Frontend
           command: |
             cd frontend
             mkdir -p ./reports/junit/
@@ -92,10 +92,10 @@ jobs:
 #  cloudfront-update:
 
 workflows:
-  # build:
-    # jobs:
-      # - build-frontend
-      # - build-backend
+  build:
+    jobs:
+      - build-frontend
+      - build-backend
   test:
     jobs:
       - test-frontend
