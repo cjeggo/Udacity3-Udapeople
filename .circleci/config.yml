@@ -138,7 +138,7 @@ jobs:
           name: Deploy backend infra
           command: |
             cd .circleci/files
-            aws cloudformationz deploy \
+            aws cloudformation deploy \
               --template-file backend.yml \
               --stack-name "backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="backend-deployment-${CIRCLE_WORKFLOW_ID:0:7}"
@@ -179,7 +179,30 @@ jobs:
           when: on_fail
       - slack/notify-on-failure
 
-#  configure-infrastructure:
+  configure-infrastructure:
+    docker:
+    - image: ansible/ansible
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints: ["01:35:e6:42:d4:49:a7:30:0d:42:4e:91:b8:1d:82:1c:03:86:5b:15"]
+      - attach_workspace:
+          at: /tmp/saveme
+      - run:
+          name: Create inventory
+          command: |
+            echo "[backend]" > .circleci/ansible/inventory.txt
+            cat /tmp/save/backend_url.txt >> .circleci/ansible/inventory.txt
+            echo .circleci/ansible/inventory.txt
+      - run:
+          name: Run ansible playbook
+          command: |
+            cd .circleci/ansible
+            ansible-playbook -i inventory.txt playbook.yml
+      - persist_to_workspace:
+          root: /tmp/saveme
+          paths:
+            - backend_url.txt
 
 #  run-migrations:
 
@@ -212,3 +235,6 @@ workflows:
           requires:
           - audit-frontend
           - audit-backend
+      - configure-infrastructure:
+          requires:
+            - deploy-infrastructure
