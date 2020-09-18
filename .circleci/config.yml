@@ -24,11 +24,13 @@ commands:
 #     description: Revert the last migration if successfully run in the current workflow.
 #     ...
 
+orbs:
+  slack: circleci/slack@3.4.2
+
 jobs:
   build-frontend:
     docker:
       - image: circleci/node
-    # working_directory: ~/frontend
     steps:
       - checkout
       - npm-install:
@@ -37,6 +39,7 @@ jobs:
           name: Building Frontend
           command: | 
             cd frontend && npm run build
+      - slack/status
 
 
   build-backend:
@@ -75,7 +78,6 @@ jobs:
   test-backend:
     docker:
       - image: circleci/node
-    # working_directory: ~/backend/test
     steps:
       - checkout
       - npm-install:
@@ -91,15 +93,32 @@ jobs:
             JEST_JUNIT_OUTPUT_DIR: "./reports/junit/"
       - store_test_results:
           path: ./backend/reports/junit/
-      # - run: cd backend && npm install
-      # - run: cd backend && npm run test
-      # - run: cd backend && npm run test:e2e
-      # - run: cd backend && npm run test:cov
 
+  audit-frontend:
+    docker:
+      - image: circleci/node
+    steps:
+      - checkout
+      - npm-install:
+          end: "frontend"
+      - run:
+          name: Test Frontend
+          command: |
+            cd frontend
+            npm audit --audit-level=critical
 
-#  scan-frontend:
-
-#  scan-backend:
+  audit-backend:
+    docker:
+      - image: circleci/node
+    steps:
+      - checkout
+      - npm-install:
+          end: "backend"
+      - run:
+          name: Test Backend
+          command: |
+            cd backend
+            npm audit --audit-level=critical
 
 #  deploy-infrastructure:
 
@@ -122,3 +141,8 @@ workflows:
       - build-backend
       - test-frontend
       - test-backend
+  Audit:
+    jobs:
+      - audit-frontend
+      - audit-backend
+
