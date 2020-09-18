@@ -28,7 +28,7 @@ jobs:
   build-frontend:
     docker:
       - image: circleci/node
-    working_directory: ~/frontend
+    # working_directory: ~/frontend
     steps:
       - checkout
       - npm-install:
@@ -45,7 +45,12 @@ jobs:
     working_directory: ~/backend
     steps:
       - checkout
-      - run: cd backend && npm run build
+      - npm-install:
+          end: backend
+      - run: 
+          name: Building Backend
+          command: |
+            cd backend && npm run build
 
 
   test-frontend:
@@ -56,7 +61,7 @@ jobs:
       - npm-install:
           end: "frontend"
       - run:
-          # name: Test Frontend
+          name: Test Frontend
           command: |
             cd frontend
             mkdir -p ./reports/junit/
@@ -69,14 +74,27 @@ jobs:
 
   test-backend:
     docker:
-      - image: circleci/node:13.8.0
-    working_directory: ~/backend/test
+      - image: circleci/node
+    # working_directory: ~/backend/test
     steps:
       - checkout
-      - run: cd backend && npm install
-      - run: cd backend && npm run test
-      - run: cd backend && npm run test:e2e
-      - run: cd backend && npm run test:cov
+      - npm-install:
+          end: "backend"
+      - run:
+          name: Test Backend
+          command: |
+            cd backend
+              mkdir -p ./reports/junit/
+              npm install --save-dev jest-junit jest-junit-reporter
+              ./node_modules/.bin/jest --ci --runInBand --reporters=default --reporters=jest-junit
+            environment:
+              JEST_JUNIT_OUTPUT_DIR: "./reports/junit/"
+      - store_test_results:
+          path: ./backend/reports/junit/
+      # - run: cd backend && npm install
+      # - run: cd backend && npm run test
+      # - run: cd backend && npm run test:e2e
+      # - run: cd backend && npm run test:cov
 
 
 #  scan-frontend:
@@ -98,11 +116,9 @@ jobs:
 #  cloudfront-update:
 
 workflows:
-  Build:
+  Build & Test:
     jobs:
       - build-frontend
       - build-backend
-  Test:
-    jobs:
       - test-frontend
-      # - test-backend
+      - test-backend
