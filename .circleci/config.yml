@@ -3,15 +3,16 @@ version: 2.1
 ### It's a good practice to keep your commands at the top of the config file. In this project, you'll need at least 2 commands:
 
 commands:
+# Add a npm install and cd command so I don't have it 100 times thorugh the code
   install-dependencies:
     parameters:
-      layer:
+      end:
         type: string
     steps:
       - run: 
-          name: Install << parameters.layer >> dependencies
+          name: Install << parameters.end >> dependencies
           command: |
-            cd << parameters.layer >>
+            cd << parameters.end >>
             npm i
 
 # commands:
@@ -30,7 +31,12 @@ jobs:
     working_directory: ~/frontend
     steps:
       - checkout
-      - run: cd frontend && npm run build
+      - install-dependancies:
+          end: frontend
+      - run: 
+          name: Building Frontend
+          command: | 
+            cd frontend && npm run build
 
 
   build-backend:
@@ -48,9 +54,9 @@ jobs:
     steps:
       - checkout
       - install-dependencies:
-          layer: "frontend"
+          end: "frontend"
       - run:
-          name: Test Frontend
+          # name: Test Frontend
           command: |
             cd frontend
             mkdir -p ./reports/junit/
