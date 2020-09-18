@@ -186,19 +186,23 @@ jobs:
 #  cloudfront-update:
 
 workflows:
-  Build & Test:
+  UdaPeople:
     jobs:
       - build-frontend
       - build-backend
-      - test-frontend
-      - test-backend
-      - audit-frontend
-      - audit-backend
-      - deploy-infrastructure:
+      - test-frontend:
           requires:
           - build-frontend
-          - build-backend
-          - test-frontend
-          - test-backend
+      - test-backend:
+          requires:
+            - build-backend
+      - audit-frontend:
+          requires:
+            - test-frontend
+      - audit-backend:
+          requires:
+            - test-backend
+      - deploy-infrastructure:
+          requires:
           - audit-frontend
           - audit-backend
