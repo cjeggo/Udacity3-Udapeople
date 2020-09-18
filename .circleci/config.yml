@@ -15,16 +15,6 @@ commands:
             cd << parameters.end >>
             npm i
 
-  aws-describe:
-    parameters:
-      end:
-        type: string
-    steps:
-      - run: 
-          name: Install << parameters.end >> dependencies
-          command: |
-            aws cloudformation describe-stack-events --stack-name "<< parameters.end >>-${CIRCLE_WORKFLOW_ID:0:7}"
-
 
 # commands:
 #   destroy-environment:
@@ -148,13 +138,15 @@ jobs:
           name: Deploy backend infra
           command: |
             cd .circleci/files
-            aws cloudformation deploy \
+            aws cloudformationz deploy \
               --template-file backend.yml \
               --stack-name "backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="backend-deployment-${CIRCLE_WORKFLOW_ID:0:7}"
-      - aws-describe:
-          end: backend
-          when: on_fail
+      - run:
+          name: Backend failure describe
+          command: |
+            aws cloudformation describe-stack-events --stack-name "frontend-${CIRCLE_WORKFLOW_ID:0:7}"
+          when: on_fail        
       - run:
           name: Save URL
           command: |
@@ -173,15 +165,17 @@ jobs:
           paths:
             - old_s3arn.txt
       - run:
-          name: Create frontend infrastructure
+          name: Deploy frontend infra
           command: |
             cd .circleci/files
             aws cloudformation deploy --template-file frontend.yml \
               --stack-name "frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="frontend-deployment-${CIRCLE_WORKFLOW_ID:0:7}" \
               --tags project=udacity
-      - aws-describe:
-          end: frontend
+      - run:
+          name: Frontend failure describe
+          command: |
+            aws cloudformation describe-stack-events --stack-name "frontend-${CIRCLE_WORKFLOW_ID:0:7}"
           when: on_fail
       - slack/notify-on-failure
 
