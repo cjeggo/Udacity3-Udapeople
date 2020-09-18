@@ -166,6 +166,11 @@ jobs:
               --stack-name "frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="frontend-deployment-${CIRCLE_WORKFLOW_ID:0:7}" \
               --tags project=udacity
+      - run:
+          name: On failure
+          command: |
+            aws cloudformation describe-stack-events --stack-name "frontend-${CIRCLE_WORKFLOW_ID}"
+          when: on_fail
       - slack/notify-on-failure
 
 #  configure-infrastructure:
