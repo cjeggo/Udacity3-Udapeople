@@ -187,6 +187,11 @@ jobs:
       - attach_workspace:
           at: /tmp/saveme
       - run:
+          name: Install Ansible
+          command: |
+            apk add --update ansible
+            ansible-galaxy install weareinteractive.environment
+      - run:
           name: Make inventory for Ansible
           command: |
             echo "[backend]" > .circleci/ansible/inventory.txt
