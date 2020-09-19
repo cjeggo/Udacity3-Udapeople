@@ -190,7 +190,7 @@ jobs:
           name: Make inventory for Ansible
           command: |
             echo "[backend]" > .circleci/ansible/inventory.txt
-            cat /tmp/save/backend_url.txt >> .circleci/ansible/inventory.txt
+            cat /tmp/saveme/backend_url.txt >> .circleci/ansible/inventory.txt
             echo .circleci/ansible/inventory.txt
       - run:
           name: Run playbook
