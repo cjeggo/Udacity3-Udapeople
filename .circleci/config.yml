@@ -228,7 +228,7 @@ jobs:
       - attach_workspace:
           at: /tmp/saveme
       - checkout
-      - install-dependencies:
+      - npm-install:
           end: "frontend"
       - run:
           name: Build frontend
