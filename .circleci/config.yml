@@ -221,55 +221,55 @@ jobs:
             curl -H "Content-Type: text/plain" -H "token: c1aa84a9-6f2b-46c5-9d1a-01ea661a629d" --request PUT --data "true" https://api.memstash.io/values/${CIRCLE_WORKFLOW_ID:0:7}
       - slack/notify-on-failure
 
-    prepare-frontend-for-deployment:
-      docker:
-        - image: circleci/node
+  prepare-frontend-for-deployment:
+    docker:
+      - image: circleci/node
+    steps:
+      - attach_workspace:
+          at: /tmp/saveme
+      - checkout
+      - install-dependencies:
+          end: "frontend"
+      - run:
+          name: Build frontend
+          command: |
+            BACKEND_URL=$(cat /tmp/saveme/backend_url.txt)
+            echo BACKEND_URL: ${BACKEND_URL}
+            export API_URL=http://${BACKEND_URL}:3030
+            cd frontend            
+            npm run build
+      - run:
+          name: Compress build files
+          command: |
+            cd frontend/dist
+            tar -zcvf /tmp/saveme/frontend.tar.gz ./
+      - persist_to_workspace:
+          root: /tmp/saveme
+          paths:
+            - frontend.tar.gz
+      - slack/notify-on-failure
+
+  deploy-frontend:
+      executor: aws-cli/default
       steps:
+        - aws-cli/setup:
+            profile-name: default
         - attach_workspace:
             at: /tmp/saveme
-        - checkout
-        - install-dependencies:
-            end: "frontend"
         - run:
-            name: Build frontend
+            name: Extract frontend build
             command: |
-              BACKEND_URL=$(cat /tmp/saveme/backend_url.txt)
-              echo BACKEND_URL: ${BACKEND_URL}
-              export API_URL=http://${BACKEND_URL}:3030
-              cd frontend            
-              npm run build
+              echo `ls /tmp/saveme`
+              mkdir ~/frontend
+              cp /tmp/saveme/frontend.tar.gz ~/frontend
+              cd ~/frontend
+              tar -zxvf frontend.tar.gz
+              echo `ls -la`
         - run:
-            name: Compress build files
+            name: deploy to s3 bucket
             command: |
-              cd frontend/dist
-              tar -zcvf /tmp/saveme/frontend.tar.gz ./
-        - persist_to_workspace:
-            root: /tmp/saveme
-            paths:
-              - frontend.tar.gz
-        - slack/notify-on-failure
-
-    deploy-frontend:
-        executor: aws-cli/default
-        steps:
-          - aws-cli/setup:
-              profile-name: default
-          - attach_workspace:
-              at: /tmp/saveme
-          - run:
-              name: Extract frontend build
-              command: |
-                echo `ls /tmp/saveme`
-                mkdir ~/frontend
-                cp /tmp/saveme/frontend.tar.gz ~/frontend
-                cd ~/frontend
-                tar -zxvf frontend.tar.gz
-                echo `ls -la`
-          - run:
-              name: deploy to s3 bucket
-              command: |
-                cd ~/frontend
-                aws s3 sync . s3://udapeople-frontend-deployment-${CIRCLE_WORKFLOW_ID:0:7}
+              cd ~/frontend
+              aws s3 sync . s3://udapeople-frontend-deployment-${CIRCLE_WORKFLOW_ID:0:7}
 
 #  deploy-backend:  
 
@@ -307,4 +307,7 @@ workflows:
       - prepare-frontend-for-deployment:
           requires:
             - configure-infrastructure
+      - deploy-frontend:
+          requires:
+            - prepare-frontend-for-deployment
       
