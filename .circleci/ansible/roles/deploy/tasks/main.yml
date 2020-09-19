@@ -1,0 +1,5 @@
+---
+- name: "Run migrations"
+  become: yes
+  shell: |    
+    npm run migrations

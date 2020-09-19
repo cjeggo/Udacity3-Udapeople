@@ -43,7 +43,6 @@ jobs:
             cd frontend && npm run build
       - slack/notify-on-failure
 
-
   build-backend:
     docker:
       - image: circleci/node
@@ -57,7 +56,6 @@ jobs:
           command: |
             cd backend && npm run build
       - slack/notify-on-failure
-
 
   test-frontend:
     docker:
@@ -181,7 +179,7 @@ jobs:
 
   configure-infrastructure:
     docker:
-    - image: ansible/ansible
+    - image: alpine:latest
     steps:
       - checkout
       - add_ssh_keys:
@@ -189,24 +187,89 @@ jobs:
       - attach_workspace:
           at: /tmp/saveme
       - run:
-          name: Create inventory
+          name: Make inventory for Ansible
           command: |
             echo "[backend]" > .circleci/ansible/inventory.txt
             cat /tmp/save/backend_url.txt >> .circleci/ansible/inventory.txt
             echo .circleci/ansible/inventory.txt
       - run:
-          name: Run ansible playbook
+          name: Run playbook
           command: |
             cd .circleci/ansible
-            ansible-playbook -i inventory.txt playbook.yml
+            ansible-playbook -i inventory.txt main.yml
       - persist_to_workspace:
           root: /tmp/saveme
           paths:
             - backend_url.txt
+      - slack/notify-on-failure
 
-#  run-migrations:
+  run-migrations:
+    docker:
+      - image: circleci/node
+    steps:
+      - checkout
+      - install-dependencies:
+          end: "backend"
+      - run:
+          name: Run DB Migration
+          command: |
+            cd backend
+            npm run migrations
+      - run:
+          name: Log to memstash
+          command: |
+            curl -H "Content-Type: text/plain" -H "token: c1aa84a9-6f2b-46c5-9d1a-01ea661a629d" --request PUT --data "true" https://api.memstash.io/values/${CIRCLE_WORKFLOW_ID:0:7}
+      - slack/notify-on-failure
 
-#  deploy-frontend:
+    prepare-frontend-for-deployment:
+      docker:
+        - image: circleci/node
+      steps:
+        - attach_workspace:
+            at: /tmp/saveme
+        - checkout
+        - install-dependencies:
+            end: "frontend"
+        - run:
+            name: Build frontend
+            command: |
+              BACKEND_URL=$(cat /tmp/saveme/backend_url.txt)
+              echo BACKEND_URL: ${BACKEND_URL}
+              export API_URL=http://${BACKEND_URL}:3030
+              cd frontend            
+              npm run build
+        - run:
+            name: Compress build files
+            command: |
+              cd frontend/dist
+              tar -zcvf /tmp/saveme/frontend.tar.gz ./
+        - persist_to_workspace:
+            root: /tmp/saveme
+            paths:
+              - frontend.tar.gz
+        - slack/notify-on-failure
+
+    deploy-frontend:
+        executor: aws-cli/default
+        steps:
+          - aws-cli/setup:
+              profile-name: default
+          - attach_workspace:
+              at: /tmp/saveme
+          - run:
+              name: Extract frontend build
+              command: |
+                echo `ls /tmp/saveme`
+                mkdir ~/frontend
+                cp /tmp/saveme/frontend.tar.gz ~/frontend
+                cd ~/frontend
+                tar -zxvf frontend.tar.gz
+                echo `ls -la`
+          - run:
+              name: deploy to s3 bucket
+              command: |
+                cd ~/frontend
+                aws s3 sync . s3://udapeople-frontend-deployment-${CIRCLE_WORKFLOW_ID:0:7}
 
 #  deploy-backend:  
 
@@ -238,3 +301,10 @@ workflows:
       - configure-infrastructure:
           requires:
             - deploy-infrastructure
+      - run-migrations:
+          requires:
+            - configure-infrastructure
+      - prepare-frontend-for-deployment:
+          requires:
+            - configure-infrastructure
+      
