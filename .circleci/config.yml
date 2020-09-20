@@ -55,6 +55,18 @@ jobs:
           name: Building Backend
           command: |
             cd backend && npm run build
+      - run:
+          name: Copy backend for Ansible
+          command: |
+              mkdir /tmp/saveme
+              cp ./backend/package.json /tmp/saveme/
+              cd backend/dist
+              tar -zcvf /tmp/saveme/backend.tar.gz ./
+      - persist_to_workspace:
+          root: /tmp/saveme
+          paths:
+            - backend.tar.gz
+            - package.json
       - slack/notify-on-failure
 
   test-frontend:

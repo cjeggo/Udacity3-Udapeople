@@ -1,20 +1,20 @@
 ---
-- name: update apt packages
+- name: apt update
   become: yes
   apt:
     update_cache: yes
 
-- name: upgrade packages
+- name: apt upgrade
   become: yes
   apt:
     upgrade: yes
 
-- name: remove dependencies that are no longer required
+- name: Remove fluff
   become: yes
   apt:
     autoremove: yes
 
-- name: install dependencies
+- name: Install node
   become: yes
   apt:
     name: ["nodejs", "npm"]
@@ -29,7 +29,7 @@
     production: yes
     state: present
 
-- name: "create web folder"
+- name: Make Web
   become: yes
   file:
     path: /home/ubuntu/web
