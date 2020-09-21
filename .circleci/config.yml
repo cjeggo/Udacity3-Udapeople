@@ -210,9 +210,11 @@ jobs:
             echo "[backend]" > .circleci/ansible/inventory.txt
             cat /tmp/saveme/backend_url.txt >> .circleci/ansible/inventory.txt
             echo .circleci/ansible/inventory.txt
+            cat .circleci/ansible/inventory.txt
       - run:
           name: Run playbook
           command: |
+            ls -l /tmp/saveme
             cd .circleci/ansible
             ansible-playbook -i inventory.txt main.yml
       - persist_to_workspace:
@@ -309,13 +311,13 @@ workflows:
       # - audit-backend:
       #     requires:
       #       - test-backend
-      # - deploy-infrastructure
+      - deploy-infrastructure
           # requires:
           # - audit-frontend
           # - audit-backend
-      # - configure-infrastructure:
-      #     requires:
-      #       - deploy-infrastructure
+      - configure-infrastructure:
+          requires:
+            - deploy-infrastructure
       # - run-migrations:
       #     requires:
       #       - configure-infrastructure
