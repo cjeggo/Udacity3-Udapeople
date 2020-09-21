@@ -62,6 +62,7 @@ jobs:
               cp ./backend/package.json /tmp/saveme/
               cd backend/dist
               tar -zcvf /tmp/saveme/backend.tar.gz ./
+              ls -l /tmp/saveme/backend.tar.gz
       - persist_to_workspace:
           root: /tmp/saveme
           paths:
@@ -187,7 +188,6 @@ jobs:
           command: |
             aws cloudformation describe-stack-events --stack-name "frontend-${CIRCLE_WORKFLOW_ID:0:7}"
           when: on_fail
-      - slack/notify-on-failure
 
   configure-infrastructure:
     docker:
@@ -219,7 +219,6 @@ jobs:
           root: /tmp/saveme
           paths:
             - backend_url.txt
-      - slack/notify-on-failure
 
   run-migrations:
     docker:
@@ -237,7 +236,6 @@ jobs:
           name: Log to memstash
           command: |
             curl -H "Content-Type: text/plain" -H "token: c1aa84a9-6f2b-46c5-9d1a-01ea661a629d" --request PUT --data "true" https://api.memstash.io/values/${CIRCLE_WORKFLOW_ID:0:7}
-      - slack/notify-on-failure
 
   prepare-frontend-for-deployment:
     docker:
@@ -265,7 +263,6 @@ jobs:
           root: /tmp/saveme
           paths:
             - frontend.tar.gz
-      - slack/notify-on-failure
 
   deploy-frontend:
       executor: aws-cli/default
@@ -298,11 +295,11 @@ jobs:
 workflows:
   UdaPeople:
     jobs:
-      - build-frontend
+      # - build-frontend
       - build-backend
-      - test-frontend:
-          requires:
-          - build-frontend
+      # - test-frontend:
+      #     requires:
+      #     - build-frontend
       # - test-backend:
       #     requires:
       #       - build-backend
@@ -312,20 +309,20 @@ workflows:
       # - audit-backend:
       #     requires:
       #       - test-backend
-      - deploy-infrastructure
+      # - deploy-infrastructure
           # requires:
           # - audit-frontend
           # - audit-backend
-      - configure-infrastructure:
-          requires:
-            - deploy-infrastructure
-      - run-migrations:
-          requires:
-            - configure-infrastructure
-      - prepare-frontend-for-deployment:
-          requires:
-            - configure-infrastructure
-      - deploy-frontend:
-          requires:
-            - prepare-frontend-for-deployment
+      # - configure-infrastructure:
+      #     requires:
+      #       - deploy-infrastructure
+      # - run-migrations:
+      #     requires:
+      #       - configure-infrastructure
+      # - prepare-frontend-for-deployment:
+      #     requires:
+      #       - configure-infrastructure
+      # - deploy-frontend:
+      #     requires:
+      #       - prepare-frontend-for-deployment
       
