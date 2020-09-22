@@ -7,7 +7,7 @@
 - name: apt upgrade
   become: yes
   apt:
-    upgrade: yes
+    upgrade: "yes"
 
 - name: Remove fluff
   become: yes
@@ -54,6 +54,7 @@
     cd /home/ubuntu/web
     npm i
 
+#    
 - name: "configure pm2 start as service"
   become: yes
   shell: |
