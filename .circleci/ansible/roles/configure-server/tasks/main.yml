@@ -54,11 +54,6 @@
     cd /home/ubuntu/web
     npm i
 
-- name: "run migrations"
-  shell: |
-    cd /home/ubuntu/web
-    npm run migrations
-
 - name: "configure pm2 start as service"
   become: yes
   shell: |
