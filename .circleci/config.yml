@@ -312,14 +312,12 @@ jobs:
               cd ~/frontend
               aws s3 sync . s3://udapeople-frontend-deployment-${CIRCLE_WORKFLOW_ID:0:7}
 
-  smoke-tests:
-    docker:
-      - image: alpine:latest
-    steps:
+  backend-smoke-tests:
+      executor: aws-cli/default
+      steps:
       - checkout
-      - run: apk add --update curl
-      - run: apk add aws-cli
-      - run: apk add --update nodejs npm
+      - aws-cli/setup:
+          profile-name: default
       - run: 
           name: Backend smoke test
           command: |
@@ -328,6 +326,18 @@ jobs:
               --query 'Reservations[*].Instances[*].PublicDnsName' \
               --output text)
             curl "http://${BACKEND_URL}:3030/api/status"
+      - destroy-environment
+      - revert-migrations
+      - slack/notify-on-failure
+
+  frontend-smoke-test:
+    docker:
+      - image: alpine:latest
+    steps:
+      - checkout
+      - run: apk add --update curl
+      - run: apk add aws-cli
+      - run: apk add --update nodejs npm
       - run:
           name: Frontend smoke test
           command: |
