@@ -256,7 +256,7 @@ jobs:
       - run:
           name: Run DB Migration
           command: |
-            cd backend
+            cd backend && npm install
             npm run migrations
       - run:
           name: Log to memstash
@@ -398,6 +398,7 @@ workflows:
       - backend-smoke-tests:
           requires:
               - run-migrations
+              - deploy-frontend
       - frontend-smoke-test:
           requires:
               - deploy-frontend

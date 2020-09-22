@@ -9,10 +9,10 @@
   apt:
     upgrade: "yes"
 
-- name: Remove fluff
-  become: yes
-  apt:
-    autoremove: yes
+# - name: Remove fluff
+#   become: yes
+#   apt:
+#     autoremove: yes
 
 - name: Install node
   become: yes
@@ -51,8 +51,9 @@
 
 - name: "install npm dependencies"
   shell: |
-    cd /home/ubuntu/web
-    npm i
+    cd /home/ubuntu/web/
+    npm install
+    npm build
 
 - name: "configure pm2 start as service"
   become: yes
@@ -63,5 +64,4 @@
   become: yes
   shell: | 
     cd /home/ubuntu/web    
-    /usr/local/bin/pm2 start --name "backend" npm -- start
-#     pm2 start main.js --name backend
+    pm2 start npm -- run "start:dev"
