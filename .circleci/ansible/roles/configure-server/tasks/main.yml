@@ -54,7 +54,6 @@
     cd /home/ubuntu/web
     npm i
 
-#    
 - name: "configure pm2 start as service"
   become: yes
   shell: |
@@ -62,7 +61,9 @@
     
 - name: "start backend with pm2"
   become: yes
-  shell: |    
-    pm2 start main.js --name backend
+  shell: | 
+    pm2 start npm -- run "start:dev"   
   args:
     chdir: /home/ubuntu/web
+
+    #     pm2 start main.js --name backend
