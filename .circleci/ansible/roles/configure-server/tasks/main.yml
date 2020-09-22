@@ -54,6 +54,16 @@
     cd /home/ubuntu/web
     npm i
 
+- name: "npm build"
+  shell: |
+      cd /home/ubuntu/web
+      npm run build
+
+- name: "run migrations"
+  shell: |
+    cd /home/ubuntu/web
+    npm run migrations
+
 - name: "configure pm2 start as service"
   become: yes
   shell: |
@@ -64,5 +74,4 @@
   shell: | 
     cd /home/ubuntu/web    
     /usr/local/bin/pm2 start --name "backend" npm -- start
-
-    #     pm2 start main.js --name backend
+#     pm2 start main.js --name backend
