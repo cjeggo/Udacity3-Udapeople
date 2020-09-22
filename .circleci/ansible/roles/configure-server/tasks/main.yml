@@ -54,11 +54,6 @@
     cd /home/ubuntu/web
     npm i
 
-- name: "npm build"
-  shell: |
-      cd /home/ubuntu/web
-      npm run build
-
 - name: "run migrations"
   shell: |
     cd /home/ubuntu/web
