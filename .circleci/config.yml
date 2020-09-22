@@ -312,19 +312,33 @@ jobs:
               cd ~/frontend
               aws s3 sync . s3://udapeople-frontend-deployment-${CIRCLE_WORKFLOW_ID:0:7}
 
+
+
   backend-smoke-tests:
-      executor: aws-cli/default
-      steps:
+      # executor: aws-cli/default
+      # steps:
+      # - checkout
+      # - aws-cli/setup:
+      #     profile-name: default
+      # - run: 
+      #     name: Backend smoke test
+      #     command: |
+      #       BACKEND_URL=$(aws ec2 describe-instances \
+      #         --filters "Name=tag:Name,Values=backend-backend-deployment-${CIRCLE_WORKFLOW_ID:0:7}" \
+      #         --query 'Reservations[*].Instances[*].PublicDnsName' \
+      #         --output text)
+      #       curl "http://${BACKEND_URL}:3030/api/status"
+    docker:
+      - image: alpine:latest
+    steps:
+      - attach_workspace:
+          at: /tmp/saveme
       - checkout
-      - aws-cli/setup:
-          profile-name: default
-      - run: 
-          name: Backend smoke test
+      - run: apk add --update curl
+      - run:
+          name: Backend API check
           command: |
-            BACKEND_URL=$(aws ec2 describe-instances \
-              --filters "Name=tag:Name,Values=backend-backend-deployment-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --query 'Reservations[*].Instances[*].PublicDnsName' \
-              --output text)
+            BACKEND_URL=$(cat /tmp/saveme/backend_url.txt)
             curl "http://${BACKEND_URL}:3030/api/status"
       - destroy-environment
       - revert-migrations
@@ -388,7 +402,10 @@ workflows:
       - deploy-frontend:
           requires:
             - prepare-frontend-for-deployment
-      - smoke-tests:
+      - backend-smoke-tests:
+          requires:
+              - run-migrations
+      - frontend-smoke-test:
           requires:
               - deploy-frontend
       
