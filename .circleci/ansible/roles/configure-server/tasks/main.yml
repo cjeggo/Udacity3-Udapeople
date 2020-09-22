@@ -62,8 +62,7 @@
 - name: "start backend with pm2"
   become: yes
   shell: | 
-    pm2 start npm -- run "start:dev"   
-  args:
-    chdir: /home/ubuntu/web
+    cd /home/ubuntu/web    
+    /usr/local/bin/pm2 start --name "backend" npm -- start
 
     #     pm2 start main.js --name backend
