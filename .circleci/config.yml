@@ -335,6 +335,8 @@ jobs:
           at: /tmp/saveme
       - checkout
       - run: apk add --update curl
+      - run: apk add aws-cli
+      - run: apk add --update nodejs npm
       - run:
           name: Backend API check
           command: |
@@ -352,6 +354,7 @@ jobs:
       - run: apk add --update curl
       - run: apk add aws-cli
       - run: apk add --update nodejs npm
+      - run: apk add bash
       - run:
           name: Frontend smoke test
           command: |
@@ -408,4 +411,7 @@ workflows:
       - frontend-smoke-test:
           requires:
               - deploy-frontend
-      
+      # - cloudfront-update:
+      #     requires:
+      #         - frontend-smoke-test
+      #         - backend-smoke-tests
