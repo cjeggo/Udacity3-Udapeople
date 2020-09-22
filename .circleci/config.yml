@@ -342,8 +342,8 @@ jobs:
           command: |
             BACKEND_URL=$(cat /tmp/saveme/backend_url.txt)
             curl "http://${BACKEND_URL}:3030/api/status"
-      - destroy-environment
-      - revert-migrations
+      # - destroy-environment
+      # - revert-migrations
       - slack/notify-on-failure
 
   frontend-smoke-test:
@@ -365,8 +365,8 @@ jobs:
             else
               return 1
             fi 
-      - destroy-environment
-      - revert-migrations
+      # - destroy-environment
+      # - revert-migrations
       - slack/notify-on-failure
 
 
