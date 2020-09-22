@@ -15,15 +15,40 @@ commands:
             cd << parameters.end >>
             npm i
 
+  destroy-environment:
+    steps:
+      - run:
+          name: Destroy backend
+          command: |
+            aws cloudformation delete-stack --stack-name backend-${CIRCLE_WORKFLOW_ID:0:7}
+          when: on_fail
+      - run:
+          name: Destroy frontend
+          command: |
+            aws s3 rm s3://udapeople-frontend-deployment-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+            aws cloudformation delete-stack --stack-name frontend-${CIRCLE_WORKFLOW_ID:0:7}
+          when: on_fail
 
-# commands:
-#   destroy-environment:
-#     description: Destroy backend and frontend cloudformation stacks given a workflow ID.
-#     ...
+  revert-migrations:
+    steps:
+      - run:
+          name: install backend dependencies
+          command: |
+            cd backend
+            npm i
+          when: on_fail
+      - run:
+          name: Revert database migration if it has already ran
+          command: |
+            if curl -H "token: 64feb3bf-1926-4aec-90fc-ec721a0f8ad6" --request GET https://api.memstash.io/values/${CIRCLE_WORKFLOW_ID:0:7} | grep "true"
+            then 
+              cd backend
+              npm run migrations:revert
+            else 
+              echo "no revert migration needed"
+            fi
+          when: on_fail
 
-#   revert-migration:
-#     description: Revert the last migration if successfully run in the current workflow.
-#     ...
 
 orbs:
   slack: circleci/slack@3.4.2
@@ -46,7 +71,6 @@ jobs:
   build-backend:
     docker:
       - image: circleci/node
-    # working_directory: ~/backend
     steps:
       - checkout
       - npm-install:
@@ -288,44 +312,73 @@ jobs:
               cd ~/frontend
               aws s3 sync . s3://udapeople-frontend-deployment-${CIRCLE_WORKFLOW_ID:0:7}
 
-#  deploy-backend:  
+  smoke-tests:
+    docker:
+      - image: alpine:latest
+    steps:
+      - checkout
+      - run: apk add --update curl
+      - run: apk add aws-cli
+      - run: apk add --update nodejs npm
+      - run: 
+          name: Backend smoke test
+          command: |
+            BACKEND_URL=$(aws ec2 describe-instances \
+              --filters "Name=tag:Name,Values=backend-backend-deployment-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --query 'Reservations[*].Instances[*].PublicDnsName' \
+              --output text)
+            curl "http://${BACKEND_URL}:3030/api/status"
+      - run:
+          name: Frontend smoke test
+          command: |
+            URL="http://udapeople-frontend-deployment-${CIRCLE_WORKFLOW_ID:0:7}.s3.eu-central-1.amazonaws.com/index.html#/employees"              
+            if curl -s ${URL} | grep "Welcome"
+            then
+              return 0
+            else
+              return 1
+            fi 
+      - destroy-environment
+      - revert-migrations
+      - slack/notify-on-failure
 
-#  smoke-test:
 
-#  cloudfront-update:
+#  cloudfront-update
 
 workflows:
   UdaPeople:
     jobs:
-      # - build-frontend
+      - build-frontend
       - build-backend
-      # - test-frontend:
-      #     requires:
-      #     - build-frontend
-      # - test-backend:
-      #     requires:
-      #       - build-backend
-      # - audit-frontend:
-      #     requires:
-      #       - test-frontend
-      # - audit-backend:
-      #     requires:
-      #       - test-backend
-      - deploy-infrastructure:
+      - test-frontend:
+          requires:
+          - build-frontend
+      - test-backend:
           requires:
             - build-backend
-          # - audit-frontend
-          # - audit-backend
+      - audit-frontend:
+          requires:
+            - test-frontend
+      - audit-backend:
+          requires:
+            - test-backend
+      - deploy-infrastructure:
+          requires:
+          - audit-frontend
+          - audit-backend
       - configure-infrastructure:
           requires:
             - deploy-infrastructure
-      # - run-migrations:
-      #     requires:
-      #       - configure-infrastructure
-      # - prepare-frontend-for-deployment:
-      #     requires:
-      #       - configure-infrastructure
-      # - deploy-frontend:
-      #     requires:
-      #       - prepare-frontend-for-deployment
+      - run-migrations:
+          requires:
+            - configure-infrastructure
+      - prepare-frontend-for-deployment:
+          requires:
+            - configure-infrastructure
+      - deploy-frontend:
+          requires:
+            - prepare-frontend-for-deployment
+      - smoke-tests:
+          requires:
+              - deploy-frontend
       
