@@ -232,7 +232,7 @@ jobs:
       - add_ssh_keys:
           fingerprints: ["c6:a2:0f:81:1c:df:36:15:ed:4e:bf:a0:3c:d0:28:29"]
       - attach_workspace:
-          at: ~/
+          at: /tmp/saveme
       - run:
           name: Install Ansible
           command: |
