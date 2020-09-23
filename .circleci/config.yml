@@ -68,6 +68,7 @@ jobs:
             cd frontend && npm run build
       - slack/notify-on-failure
 
+#              cd backend/dist
   build-backend:
     docker:
       - image: circleci/node
@@ -84,7 +85,7 @@ jobs:
           command: |
               mkdir /tmp/saveme
               cp ./backend/package.json /tmp/saveme/
-              cd backend/dist
+              cd backend
               tar -zcvf /tmp/saveme/backend.tar.gz ./
               ls -l /tmp/saveme/backend.tar.gz
       - persist_to_workspace:
