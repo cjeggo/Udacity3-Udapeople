@@ -15,6 +15,11 @@
 #   copy:
 #     src: ~/backend
 #     dest: /home/ubuntu
+- name: Make backend dir
+  file:
+    path: /home/ubuntu/web
+    state: directory
+
 - name: "copy backend build"
   unarchive:
     src: /tmp/saveme/backend.tar.gz
