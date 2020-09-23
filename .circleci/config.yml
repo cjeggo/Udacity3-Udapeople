@@ -180,13 +180,10 @@ jobs:
       - run:
           name: Get and save public DNS of EC2 instance to https://memstash.io/
           command: |
-            PUBLIC_DNS=$(aws ec2 describe-instances --region ${AWS_DEFAULT_REGION} --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" --query "Reservations[*].Instances[0].PublicDnsName" --output text)
-            echo ${PUBLIC_DNS}
-            curl -H "Content-Type: text/plain" \
-               -H "token: ${CIRCLE_WORKFLOW_ID}" \
-               --request PUT \
-               --data ${PUBLIC_DNS} \
-               https://api.memstash.io/values/public_dns
+            PUBLIC_DNS=$(aws ec2 describe-instances --region ${AWS_DEFAULT_REGION} \
+            --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+            --query "Reservations[*].Instances[0].PublicDnsName" 
+            --output text) > /tmp/saveme/public_dns.txt           
       - run:
           name: Backend failure describe
           command: |
@@ -327,6 +324,8 @@ jobs:
     docker:
       - image: python:3.7-alpine3.11
     steps:
+      - attach_workspace:
+            at: /tmp/saveme
       - checkout
       - run:
           name: Install system dependencies
@@ -349,7 +348,7 @@ jobs:
       - run:
           name: Smoke test on backend
           command: |
-            PUBLIC_DNS=$(curl -H "token: ${CIRCLE_WORKFLOW_ID}" --request GET https://api.memstash.io/values/public_dns)
+            PUBLIC_DNS=$(cat /tmp/saveme/public_dns.txt)
             echo ${PUBLIC_DNS}
             if curl -s "http://${PUBLIC_DNS}:3030/api/status" | grep "ok"
             then
