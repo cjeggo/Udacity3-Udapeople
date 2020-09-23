@@ -17,7 +17,7 @@
 #     dest: /home/ubuntu
 - name: Make backend dir
   file:
-    path: /home/ubuntu/web
+    path: /home/ubuntu/backend
     state: directory
 
 - name: "copy backend build"
