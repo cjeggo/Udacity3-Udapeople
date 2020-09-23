@@ -415,22 +415,26 @@ workflows:
     jobs:
       - build-frontend
       - build-backend
-      - test-frontend:
-          requires:
-          - build-frontend
-      - test-backend:
-          requires:
-            - build-backend
-      - audit-frontend:
-          requires:
-            - test-frontend
-      - audit-backend:
-          requires:
-            - test-backend
+      #Add these back later. Need to save on build time for Ansible testing
+      # - test-frontend:
+      #     requires:
+      #     - build-frontend
+      # - test-backend:
+      #     requires:
+      #       - build-backend
+      # - audit-frontend:
+      #     requires:
+      #       - test-frontend
+      # - audit-backend:
+      #     requires:
+      #       - test-backend
       - deploy-infrastructure:
           requires:
-          - audit-frontend
-          - audit-backend
+          - build-frontend
+          - build-backend
+          # Add these back and remove above
+          # - audit-frontend
+          # - audit-backend
       - configure-infrastructure:
           requires:
             - deploy-infrastructure
