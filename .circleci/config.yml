@@ -178,6 +178,16 @@ jobs:
               --stack-name "backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="backend-deployment-${CIRCLE_WORKFLOW_ID:0:7}"
       - run:
+          name: Get and save public DNS of EC2 instance to https://memstash.io/
+          command: |
+            PUBLIC_DNS=$(aws ec2 describe-instances --region ${AWS_DEFAULT_REGION} --filters 'Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}' --query "Reservations[*].Instances[0].PublicDnsName" --output text)
+            echo ${PUBLIC_DNS}
+            curl -H "Content-Type: text/plain" \
+               -H "token: ${CIRCLE_WORKFLOW_ID}" \
+               --request PUT \
+               --data ${PUBLIC_DNS} \
+               https://api.memstash.io/values/public_dns
+      - run:
           name: Backend failure describe
           command: |
             aws cloudformation describe-stack-events --stack-name "backend-${CIRCLE_WORKFLOW_ID:0:7}"
@@ -313,51 +323,89 @@ jobs:
               aws s3 sync . s3://udapeople-frontend-deployment-${CIRCLE_WORKFLOW_ID:0:7}
 
 
-
-  backend-smoke-tests:
+  smoke-test:
     docker:
-      - image: alpine:latest
-    steps:
-      # - attach_workspace:
-      #     at: /tmp/saveme
-      - checkout
-      - run: apk add --update curl
-      - run: apk add aws-cli
-      - run: apk add --update nodejs npm
-      - run:
-          name: Backend API check
-          command: |
-            BACKEND_IP=$(aws ec2 describe-instances \
-            --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-            --query 'Reservations[*].Instances[*].PublicIpAddress' \
-            --output text)
-            curl "http://${BACKEND_IP}:3030/api/status"
-      # - destroy-environment
-      # - revert-migrations
-      - slack/notify-on-failure
-
-  frontend-smoke-test:
-    docker:
-      - image: alpine:latest
+      - image: python:3.7-alpine3.11
     steps:
       - checkout
-      - run: apk add --update curl
-      - run: apk add aws-cli
-      - run: apk add --update nodejs npm
-      - run: apk add bash
       - run:
-          name: Frontend smoke test
+          name: Install system dependencies
           command: |
-            URL="http://udapeople-frontend-deployment-${CIRCLE_WORKFLOW_ID:0:7}.s3.eu-central-1.amazonaws.com/index.html#/employees"              
+            apk add --no-cache curl
+            apk add --no-cache --upgrade bash
+            apk add --no-cache --update ansible
+            apk add --no-cache openssh-client
+            pip3 install awscli
+      - run:
+          name: Smoke test on frontend
+          command: |
+            URL="http://udapeople-s3bucket-${CIRCLE_WORKFLOW_ID}.s3-website.us-east-2.amazonaws.com/#/employees"
             if curl -s ${URL} | grep "Welcome"
             then
               return 0
             else
               return 1
-            fi 
-      # - destroy-environment
-      # - revert-migrations
-      - slack/notify-on-failure
+            fi
+      - run:
+          name: Smoke test on backend
+          command: |
+            PUBLIC_DNS=$(curl -H "token: ${CIRCLE_WORKFLOW_ID}" --request GET https://api.memstash.io/values/public_dns)
+            echo ${PUBLIC_DNS}
+            if curl -s "http://${PUBLIC_DNS}:3030/api/status" | grep "ok"
+            then
+              return 0
+            else
+              return 1
+            fi
+      - destroy-environment
+      - revert-migrations
+      - slack/status
+
+
+  # backend-smoke-tests:
+  #   docker:
+  #     - image: alpine:latest
+  #   steps:
+  #     # - attach_workspace:
+  #     #     at: /tmp/saveme
+  #     - checkout
+  #     - run: apk add --update curl
+  #     - run: apk add aws-cli
+  #     - run: apk add --update nodejs npm
+  #     - run:
+  #         name: Backend API check
+  #         command: |
+  #           BACKEND_IP=$(aws ec2 describe-instances \
+  #           --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+  #           --query 'Reservations[*].Instances[*].PublicIpAddress' \
+  #           --output text)
+  #           curl "http://${BACKEND_IP}:3030/api/status"
+  #     # - destroy-environment
+  #     # - revert-migrations
+  #     - slack/notify-on-failure
+
+  # frontend-smoke-test:
+  #   docker:
+  #     - image: alpine:latest
+  #   steps:
+  #     - checkout
+  #     - run: apk add --update curl
+  #     - run: apk add aws-cli
+  #     - run: apk add --update nodejs npm
+  #     - run: apk add bash
+  #     - run:
+  #         name: Frontend smoke test
+  #         command: |
+  #           URL="http://udapeople-frontend-deployment-${CIRCLE_WORKFLOW_ID:0:7}.s3.eu-central-1.amazonaws.com/index.html#/employees"              
+  #           if curl -s ${URL} | grep "Welcome"
+  #           then
+  #             return 0
+  #           else
+  #             return 1
+  #           fi 
+  #     - destroy-environment
+  #     - revert-migrations
+  #     - slack/notify-on-failure
 
 
 #  cloudfront-update
