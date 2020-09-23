@@ -1,67 +1,22 @@
----
-- name: apt update
-  become: yes
-  apt:
-    update_cache: yes
-
-- name: apt upgrade
-  become: yes
-  apt:
-    upgrade: "yes"
-
-# - name: Remove fluff
-#   become: yes
-#   apt:
-#     autoremove: yes
-
-- name: Install node
-  become: yes
-  apt:
-    name: ["nodejs", "npm"]
-    state: latest
-    update_cache: yes
-
-- name: install pm2
-  become: yes
+- name: "install node 12.X"
+  shell: |
+    curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+    sudo apt -y upgrade
+    sudo apt install -y nodejs
+- name: "install pm2 by npm"
+  become: true
   npm:
     name: pm2
     global: yes
     production: yes
     state: present
 
-- name: Make Web
-  become: yes
-  file:
-    path: /home/ubuntu/web
-    state: directory
-
-- name: "copy backend build"
-  become: yes
-  unarchive:
-    src: /tmp/saveme/backend.tar.gz
-    dest: /home/ubuntu/web/
-    owner: ubuntu
-
-- name: "copy backend package.json"
-  become: yes
+- name: "copy files from CircleCI to server"
   copy:
-    src: /tmp/saveme/package.json
-    dest: /home/ubuntu/web/
-    owner: ubuntu
+    src: /root/project/backend
+    dest: /home/ubuntu
 
-- name: "install npm dependencies"
+- name: "install package dependencies"
   shell: |
-    cd /home/ubuntu/web/
-    npm install
-    npm build
-
-- name: "configure pm2 start as service"
-  become: yes
-  shell: |
-    env PATH=$PATH:/usr/local/bin pm2 startup -u ubuntu
-    
-- name: "start backend with pm2"
-  become: yes
-  shell: | 
-    cd /home/ubuntu/web    
-    pm2 start npm -- run "start:dev"
+    cd /home/ubuntu/backend    
+    npm install 
