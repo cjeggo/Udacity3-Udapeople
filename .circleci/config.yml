@@ -443,13 +443,19 @@ workflows:
       - deploy-frontend:
           requires:
             - prepare-frontend-for-deployment
-      - backend-smoke-tests:
+      - smoke-test:
           requires:
               - run-migrations
               - deploy-frontend
-      - frontend-smoke-test:
-          requires:
-              - deploy-frontend
+              - configure-infrastructure
+
+      # - backend-smoke-tests:
+      #     requires:
+      #         - run-migrations
+      #         - deploy-frontend
+      # - frontend-smoke-test:
+      #     requires:
+      #         - deploy-frontend
       # - cloudfront-update:
       #     requires:
       #         - frontend-smoke-test
