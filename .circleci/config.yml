@@ -351,17 +351,18 @@ jobs:
             else
               return 1
             fi
-      - run:
-          name: Smoke test on backend
-          command: |
-            BACKEND_IP=$(aws ec2 describe-instances \
-            --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-            --query 'Reservations[*].Instances[*].PublicIpAddress' \
-            --output text)
-            curl "http://${BACKEND_IP}:3030/api/status"
-      - destroy-environment
-      - revert-migrations
-      - slack/status
+      # - run:
+      #     name: Smoke test on backend
+      #     command: |
+      #       BACKEND_IP=$(aws ec2 describe-instances \
+      #       --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+      #       --query 'Reservations[*].Instances[*].PublicIpAddress' \
+      #       --output text)
+      #       echo ${BACKEND_IP}
+      #       curl "http://${BACKEND_IP}:3030/api/status"
+      # - destroy-environment
+      # - revert-migrations
+      # - slack/status
 
 
             # PUBLIC_DNS=$(cat /tmp/saveme/public_dns.txt)
@@ -419,7 +420,60 @@ jobs:
   #     - slack/notify-on-failure
 
 
-#  cloudfront-update
+  get-last-deployment-id:
+    docker:
+      - image: alpine:latest
+    steps:
+      - checkout
+      - run: apk add aws-cli
+      - run: apk add tar
+      - run:
+          name: Query and save last deployment id
+          command: |
+            mkdir /tmp/saveme
+            ID=$(aws cloudformation \
+                list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+                --no-paginate --output text)
+            echo ${ID} > /tmp/saveme/last_deployment_id.txt
+      - persist_to_workspace:
+          root: /tmp/workspace
+          paths:
+            - last_deployment_id.txt
+
+  cloudfront-update:
+    executor: aws-cli/default
+    steps:
+      - aws-cli/setup:
+          profile-name: default
+      - checkout
+      - run:
+          name: Promote to production
+          command: |
+              aws cloudformation deploy \
+                --template-file .circleci/files/cloudfront.yml \
+                --stack-name udapeople-cloudfront \
+                --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
+          no_output_timeout: 20m
+      - destroy-environment
+      - revert-migrations
+
+  cleanup-old-resources:
+    docker:
+      - image: alpine:latest
+    steps:
+      - checkout
+      - run: apk add aws-cli
+      - run: apk add tar
+      - attach_workspace:
+          at: /tmp/saveme
+      - run:
+          name: Delete old resources
+          command: |
+            OldPipelineID=$(cat /tmp/saveme/last_deployment_id.txt)
+            echo Old pipeline ID: ${OldPipelineID}
+            aws s3 rm s3://udapeople-frontend-deployment-${OldPipelineID} --recursive
+            aws cloudformation delete-stack --stack-name backend-${OldPipelineID}
+            aws cloudformation delete-stack --stack-name frontend-${OldPipelineID}  
 
 workflows:
   UdaPeople:
