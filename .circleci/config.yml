@@ -182,7 +182,7 @@ jobs:
           command: |
             PUBLIC_DNS=$(aws ec2 describe-instances --region ${AWS_DEFAULT_REGION} \
             --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-            --query "Reservations[*].Instances[0].PublicDnsName" 
+            --query "Reservations[*].Instances[0].PublicDnsName" \
             --output text) > /tmp/saveme/public_dns.txt           
       - run:
           name: Backend failure describe
