@@ -521,6 +521,7 @@ workflows:
               - smoke-test
       - cleanup-old-resources:
           requires:
+              - get-last-deployment-id
               - cloudfront-update
 
       # - backend-smoke-tests:
