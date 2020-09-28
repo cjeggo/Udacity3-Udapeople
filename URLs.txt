@@ -1,4 +1,4 @@
-URL01 - GitHub Repo
+URL01 - https://github.com/cjeggo/Udacity3-Udapeople
 URL02 - udapeople-frontend-deployment-5d63021.s3.amazonaws.com
 URL03 - d1pqm53ic8uods.cloudfront.net
 URL04 - http://ec2-35-158-103-166.eu-central-1.compute.amazonaws.com/
