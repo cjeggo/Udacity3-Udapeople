@@ -460,10 +460,10 @@ workflows:
               - configure-infrastructure
       - get-last-deployment-id:
           requires:
-              - smoke-test
+              - smoke-tests
       - cloudfront-update:
           requires:
-              - smoke-test
+              - smoke-tests
       - cleanup-old-resources:
           requires:
               - get-last-deployment-id
