@@ -346,19 +346,18 @@ jobs:
             else
               return 1
             fi
-      ## Note: Test this elsewhere
-      # - run:
-      #     name: Smoke test on backend
-      #     command: |
-      #       BACKEND_IP=$(aws ec2 describe-instances \
-      #       --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-      #       --query 'Reservations[*].Instances[*].PublicIpAddress' \
-      #       --output text)
-      #       echo ${BACKEND_IP}
-      #       curl "http://${BACKEND_IP}:3030/api/status"
-      # - destroy-environment
-      # - revert-migrations
-      # - slack/status
+      - run:
+          name: Smoke test on backend
+          command: |
+            BACKEND_IP=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --output text)
+            echo ${BACKEND_IP}
+            curl "http://${BACKEND_IP}:3030/api/status"
+      - destroy-environment
+      - revert-migrations
+      - slack/status
 
   get-last-deployment-id:
     docker:
@@ -380,6 +379,11 @@ jobs:
           paths:
             - last_deployment_id.txt
 
+
+              # aws cloudformation deploy \
+              #   --template-file .circleci/files/cloudfront.yml \
+              #   --stack-name udapeople-cloudfront \
+              #   --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
   cloudfront-update:
     executor: aws-cli/default
     steps:
@@ -389,10 +393,7 @@ jobs:
       - run:
           name: Promote to production
           command: |
-              aws cloudformation deploy \
-                --template-file .circleci/files/cloudfront.yml \
-                --stack-name udapeople-cloudfront \
-                --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
+              aws cloudformation update-stack --use-previous-template --stack-name cloudfront --parameters ParameterKey=WorkflowID,ParameterValue=${CIRCLE_WORKFLOW_ID:0:7}
           no_output_timeout: 20m
       - destroy-environment
       - revert-migrations
