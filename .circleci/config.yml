@@ -423,22 +423,22 @@ workflows:
     jobs:
       - build-frontend
       - build-backend
-      # - test-frontend:
-      #     requires:
-      #     - build-frontend
-      # - test-backend:
-      #     requires:
-      #       - build-backend
-      # - audit-frontend:
-      #     requires:
-      #       - test-frontend
-      # - audit-backend:
-      #     requires:
-      #       - test-backend
-      - deploy-infrastructure
-          # requires:
-          # - audit-frontend
-          # - audit-backend
+      - test-frontend:
+          requires:
+          - build-frontend
+      - test-backend:
+          requires:
+            - build-backend
+      - audit-frontend:
+          requires:
+            - test-frontend
+      - audit-backend:
+          requires:
+            - test-backend
+      - deploy-infrastructure:
+          requires:
+          - audit-frontend
+          - audit-backend
       - configure-infrastructure:
           requires:
             - deploy-infrastructure
@@ -452,21 +452,21 @@ workflows:
       - prepare-frontend-for-deployment:
           requires:
             - configure-infrastructure
-      # - deploy-frontend:
-      #     requires:
-      #       - prepare-frontend-for-deployment
-      # - smoke-tests:
-      #     requires:
-      #         - run-migrations
-      #         - deploy-frontend
-      #         - configure-infrastructure
-      # - get-last-deployment-id:
-      #     requires:
-      #         - smoke-tests
-      # - cloudfront-update:
-      #     requires:
-      #         - smoke-tests
-      # - cleanup-old-resources:
-      #     requires:
-      #         - get-last-deployment-id
-      #         - cloudfront-update
+      - deploy-frontend:
+          requires:
+            - prepare-frontend-for-deployment
+      - smoke-tests:
+          requires:
+              - run-migrations
+              - deploy-frontend
+              - configure-infrastructure
+      - get-last-deployment-id:
+          requires:
+              - smoke-tests
+      - cloudfront-update:
+          requires:
+              - smoke-tests
+      - cleanup-old-resources:
+          requires:
+              - get-last-deployment-id
+              - cloudfront-update
