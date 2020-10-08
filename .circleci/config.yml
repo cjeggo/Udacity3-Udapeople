@@ -175,7 +175,7 @@ jobs:
               --stack-name "backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="backend-deployment-${CIRCLE_WORKFLOW_ID:0:7}"
       - run:
-          name: Get and save public DNS of EC2 instance to https://memstash.io/
+          name: Get and save public DNS of EC2
           command: |
             PUBLIC_DNS=$(aws ec2 describe-instances --region ${AWS_DEFAULT_REGION} \
             --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
@@ -196,6 +196,7 @@ jobs:
             aws ec2 describe-instances --filters "Name=tag:Name,Values=backend-backend-deployment-${CIRCLE_WORKFLOW_ID:0:7}" \
               --query "Reservations[*].Instances[*].[PublicDnsName]" \
               --output text > /tmp/saveme/backend_url.txt
+            cat /tmp/saveme/backend_url.txt
       - persist_to_workspace:
           root: /tmp/saveme
           paths:
@@ -418,52 +419,52 @@ jobs:
 workflows:
   UdaPeople:
     jobs:
-      - build-frontend
-      - build-backend
-      - test-frontend:
-          requires:
-          - build-frontend
-      - test-backend:
-          requires:
-            - build-backend
-      - audit-frontend:
-          requires:
-            - test-frontend
-      - audit-backend:
-          requires:
-            - test-backend
-      - deploy-infrastructure:
-          requires:
-          - audit-frontend
-          - audit-backend
-      - configure-infrastructure:
-          requires:
-            - deploy-infrastructure
-          filters:
-            branches:
-              only:
-                - master
-      - run-migrations:
-          requires:
-            - configure-infrastructure
-      - prepare-frontend-for-deployment:
-          requires:
-            - configure-infrastructure
-      - deploy-frontend:
-          requires:
-            - prepare-frontend-for-deployment
-      - smoke-tests:
-          requires:
-              - run-migrations
-              - deploy-frontend
-              - configure-infrastructure
-      - get-last-deployment-id:
-          requires:
-              - smoke-tests
-      - cloudfront-update:
-          requires:
-              - smoke-tests
-      - cleanup-old-resources:
-          requires:
-              - get-last-deployment-id
-              - cloudfront-update
+      # - build-frontend
+      # - build-backend
+      # - test-frontend:
+      #     requires:
+      #     - build-frontend
+      # - test-backend:
+      #     requires:
+      #       - build-backend
+      # - audit-frontend:
+      #     requires:
+      #       - test-frontend
+      # - audit-backend:
+      #     requires:
+      #       - test-backend
+      - deploy-infrastructure
+          # requires:
+          # - audit-frontend
+          # - audit-backend
+      # - configure-infrastructure:
+      #     requires:
+      #       - deploy-infrastructure
+      #     filters:
+      #       branches:
+      #         only:
+      #           - master
+      # - run-migrations:
+      #     requires:
+      #       - configure-infrastructure
+      # - prepare-frontend-for-deployment:
+      #     requires:
+      #       - configure-infrastructure
+      # - deploy-frontend:
+      #     requires:
+      #       - prepare-frontend-for-deployment
+      # - smoke-tests:
+      #     requires:
+      #         - run-migrations
+      #         - deploy-frontend
+      #         - configure-infrastructure
+      # - get-last-deployment-id:
+      #     requires:
+      #         - smoke-tests
+      # - cloudfront-update:
+      #     requires:
+      #         - smoke-tests
+      # - cleanup-old-resources:
+      #     requires:
+      #         - get-last-deployment-id
+      #         - cloudfront-update

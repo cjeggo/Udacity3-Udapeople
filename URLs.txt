@@ -1,6 +1,6 @@
 URL01 - https://github.com/cjeggo/Udacity3-Udapeople
-URL02 - udapeople-frontend-deployment-5d63021.s3.amazonaws.com
+URL02 - udapeople-frontend-deployment-dd021c9.s3.amazonaws.com
 URL03 - d1pqm53ic8uods.cloudfront.net
-URL04 - http://ec2-3-127-80-71.eu-central-1.compute.amazonaws.com:3030/api/status
-URL05 - http://ec2-18-157-74-88.eu-central-1.compute.amazonaws.com:9090/
-URL06 - 
+URL04 - Not sure what this URL should be. There is a cloudfront and S3 URL above??
+URL05 - http://ec2-18-157-77-247.eu-central-1.compute.amazonaws.com:3030/api/employees (I stopped and strated the EC2, ever since the frontend is behaving strange. API_URL changed?)
+URL06 - http://ec2-18-157-180-67.eu-central-1.compute.amazonaws.com:9090/
