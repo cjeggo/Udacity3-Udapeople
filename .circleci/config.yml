@@ -76,6 +76,7 @@ jobs:
           name: Building Backend
           command: |
             cd backend && npm run build
+      # This should be moved to after the audit step!!
       - run:
           name: Copy backend for Ansible
           command: |
@@ -420,8 +421,8 @@ jobs:
 workflows:
   UdaPeople:
     jobs:
-      # - build-frontend
-      # - build-backend
+      - build-frontend
+      - build-backend
       # - test-frontend:
       #     requires:
       #     - build-frontend
