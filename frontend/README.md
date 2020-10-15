@@ -35,7 +35,7 @@ See also: [react-mobx-typescript-boilerplate](https://github.com/rokoroku/react-
 - [x] [HTML Webpack Plugin](https://github.com/ampedandwired/html-webpack-plugin)
 - [x] [Prettier](https://github.com/prettier/prettier)
 
-## Setup
+## Setup.
 
 ```
 $ npm install
