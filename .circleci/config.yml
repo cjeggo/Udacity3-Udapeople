@@ -322,12 +322,24 @@ jobs:
             - frontend.tar.gz
 
   deploy-frontend:
-      executor: aws-cli/default
+      # executor: aws-cli/default
+      # steps:
+      #   - aws-cli/setup:
+      #       profile-name: default
+        # - attach_workspace:
+        #     at: /tmp/saveme
+      docker:
+        - image: python:3.7-alpine3.11
       steps:
-        - aws-cli/setup:
-            profile-name: default
-        - attach_workspace:
-            at: /tmp/saveme
+        - checkout
+        - run:
+           name: Install dependencies
+           command: |
+            apk add --no-cache nodejs
+            apk add --no-cache npm
+            apk add --no-cache bash
+            apk add --no-cache curl
+            pip install awscli
         - run:
             name: Get backend url
             command: |
@@ -336,18 +348,24 @@ jobs:
                 --query 'Reservations[*].Instances[*].PublicIpAddress' \
                 --output text)
               export API_URL="http://${BACKEND_IP}:3030"
-              # touch /tmp/saveme/frontend/.env
-              # echo "API_URL=$API_URL" >> /tmp/saveme/frontend/.env
               echo "${API_URL}"
+        # - run:
+        #     name: Extract frontend build
+        #     command: |
+        #       echo `ls /tmp/saveme`
+        #       mkdir ~/frontend
+        #       cp /tmp/saveme/frontend.tar.gz ~/frontend
+        #       cd ~/frontend
+        #       tar -zxvf frontend.tar.gz
+        #       echo `ls -la`
+        #       npm i
+        #       npm run build
+        #       npm audit fix --audit-level=critical --force
         - run:
-            name: Extract frontend build
+            name: "Baking backend API_URL into the frontend"
             command: |
-              echo `ls /tmp/saveme`
-              mkdir ~/frontend
-              cp /tmp/saveme/frontend.tar.gz ~/frontend
-              cd ~/frontend
-              tar -zxvf frontend.tar.gz
-              echo `ls -la`
+              npm install webpack-dev-server -g
+              cd frontend
               npm i
               npm run build
               npm audit fix --audit-level=critical --force
