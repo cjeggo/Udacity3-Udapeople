@@ -372,7 +372,7 @@ jobs:
         - run:
             name: deploy to s3 bucket
             command: |
-              cd frontend
+              cd frontend/dist
               aws s3 cp . s3://udapeople-frontend-deployment-${CIRCLE_WORKFLOW_ID:0:7} --recursive  
 
   smoke-tests:
