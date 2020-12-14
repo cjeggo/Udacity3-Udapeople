@@ -222,6 +222,9 @@ jobs:
           fingerprints: ["c6:a2:0f:81:1c:df:36:15:ed:4e:bf:a0:3c:d0:28:29"]
       - attach_workspace:
           at: /tmp/saveme
+            - checkout
+      - restore_cache:
+          keys: [backend-build]
       - run:
           name: Install Ansible
           command: |
@@ -359,13 +362,13 @@ workflows:
       #     requires: [build-frontend]
       # - test-backend:
       #     requires: [build-backend]
-      - scan-backend:
-          requires: [build-backend]
-      - scan-frontend:
-          requires: [build-frontend]
+      # - scan-backend:
+      #     requires: [build-backend]
+      # - scan-frontend:
+      #     requires: [build-frontend]
       - deploy-infrastructure:
           # requires: [test-frontend, test-backend, scan-frontend, scan-backend]
-          requires: [scan-frontend, scan-backend]
+          requires: [build-frontend, build-backend]
           # filters:
           #   branches:
           #     only: [test-feature-branch]

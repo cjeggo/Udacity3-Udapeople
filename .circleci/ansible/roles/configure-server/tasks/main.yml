@@ -19,13 +19,13 @@
 
 - name: "Copy build"
   unarchive:
-    src: /tmp/saveme/backend.tar.gz
+    src: backend/node_modules
     dest: /home/ubuntu/backend/
 
-- name: "Copy package.json"
-  copy:
-    src: /tmp/saveme/package.json
-    dest: /home/ubuntu/backend/
+# - name: "Copy package.json"
+#   copy:
+#     src: /tmp/saveme/package.json
+#     dest: /home/ubuntu/backend/
 
 - name: "NPM Install"
   shell: |
