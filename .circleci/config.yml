@@ -185,10 +185,10 @@ jobs:
             echo "[backend]" > /tmp/saveme/inventory.txt
             aws ec2 describe-instances --filters "Name=tag:project,Values=Udapeople-backend" \
             --query "Reservations[*].Instances[*].[PublicIpAddress]" \
-            --output text
+            --output text | grep -v None
             aws ec2 describe-instances --filters "Name=tag:project,Values=Udapeople-backend" \
             --query "Reservations[*].Instances[*].[PublicIpAddress]" \
-            --output text >> /tmp/saveme/inventory.txt
+            --output text | grep -v None >> /tmp/saveme/inventory.txt
             cat /tmp/saveme/inventory.txt
       - persist_to_workspace:
           root: /tmp/saveme
