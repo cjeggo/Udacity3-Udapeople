@@ -223,23 +223,14 @@ jobs:
             apk add --update ansible
             apk add --update bash
             ansible-galaxy install weareinteractive.environment
-      # - run:
-      #     name: Make inventory for Ansible
-      #     command: |
-      #       echo "[backend]" > .circleci/ansible/inventory.txt
-      #       cat /tmp/saveme/inventory.txt >>
       - write-envvars-file
       - run:
           name: Run playbook
           command: |
-            ls -l /project
             cd .circleci/ansible
+            cat inventory.txt
             ansible-playbook -i inventory.txt configure-server.yml
-      - persist_to_workspace:
-          root: /tmp/saveme
-          paths:
-            - backend_url.txt
-      - destroy-environment
+
 
 #   configure-infrastructure:
 #     docker:
