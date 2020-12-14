@@ -182,15 +182,16 @@ jobs:
       - run:
           name: Backend IP to Inventory
           command: |
+            echo "[backend]" > /tmp/saveme/inventory.txt
             aws ec2 describe-instances --filters "Name=tag:project,Values=Udapeople-backend" \
             --query "Reservations[*].Instances[*].[PublicIpAddress]" \
             --output text
             aws ec2 describe-instances --filters "Name=tag:project,Values=Udapeople-backend" \
             --query "Reservations[*].Instances[*].[PublicIpAddress]" \
-            --output text >> .circleci/ansible/inventory.txt
-            cat .circleci/ansible/inventory.txt
+            --output text >> /tmp/saveme/inventory.txt
+            cat /tmp/saveme/inventory.txt
       - persist_to_workspace:
-          root: .circleci/ansible/
+          root: /tmp/saveme
           paths:
             - inventory.txt
       - run:
@@ -231,9 +232,9 @@ jobs:
       - run:
           name: Run playbook
           command: |
+            cat /tmp/saveme/inventory.txt
             cd .circleci/ansible
-            cat inventory.txt
-            ansible-playbook -i inventory.txt configure-server.yml
+            ansible-playbook -i /tmp/saveme/inventory.txt configure-server.yml
 
 
 #   configure-infrastructure:
