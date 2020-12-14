@@ -162,7 +162,7 @@ jobs:
       - checkout
       - aws-cli/setup:
           profile-name: default
-      # - run: mkdir /tmp/saveme
+      - run: mkdir /tmp/saveme
       - run:
           name: Deploy backend infra
           command: |
@@ -184,11 +184,11 @@ jobs:
           command: |
             aws ec2 describe-instances --filters "Name=tag:project,Values=Udapeople-backend" \
             --query "Reservations[*].Instances[*].[PublicIpAddress]" \
-            --output text > .circleci/ansible/inventory.txt
+            --output text > /tmp/saveme/inventory.txt
       - persist_to_workspace:
-          root: ~/
+          root: /tmp/saveme
           paths:
-            - .circleci/ansible/inventory.txt
+            - inventory.txt
       - run:
           name: Backend failure describe
           command: |
@@ -198,15 +198,17 @@ jobs:
           name: Save old bucket arn
           command: echo "arn:aws:s3:::`aws s3 ls | awk '{ print $3 } ' | grep udapeople-frontend-deployment`" > /project/old_s3arn.txt
       - persist_to_workspace:
-          root: ~/
+          root: /tmp/saveme
           paths:
-            - project/old_s3arn.txt     
+            - old_s3arn.txt     
       - run:
           name: Frontend failure describe
           command: |
             aws cloudformation describe-stack-events --stack-name "frontend-${CIRCLE_WORKFLOW_ID:0:7}"
           when: on_fail
-          
+      - destroy-environment:
+          when:
+            on_fail   
 
   configure-infrastructure:
     docker:
@@ -216,7 +218,7 @@ jobs:
       - add_ssh_keys:
           fingerprints: ["c6:a2:0f:81:1c:df:36:15:ed:4e:bf:a0:3c:d0:28:29"]
       - attach_workspace:
-          at: /project
+          at: /tmp/saveme
       - run:
           name: Install Ansible
           command: |
@@ -226,8 +228,8 @@ jobs:
       - run:
           name: Make inventory for Ansible
           command: |
-            echo "[backend]" > .circleci/ansible/inventory.txt
-            cat .circleci/ansible/inventory.txt
+            echo "[backend]" > /tmp/saveme/inventory.txt
+            cat /tmp/saveme/inventory.txt
       - write-envvars-file
       - run:
           name: Run playbook
@@ -236,9 +238,12 @@ jobs:
             cd .circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml
       - persist_to_workspace:
-          root: ~/
+          root: /tmp/saveme
           paths:
-            - /project/backend_url.txt
+            - backend_url.txt
+      - destroy-environment:
+          when:
+            on_fail
 
 #   configure-infrastructure:
 #     docker:
