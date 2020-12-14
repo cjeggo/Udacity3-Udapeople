@@ -184,9 +184,9 @@ jobs:
           command: |
             aws ec2 describe-instances --filters "Name=tag:project,Values=Udapeople-backend" \
             --query "Reservations[*].Instances[*].[PublicIpAddress]" \
-            --output text > /tmp/saveme/inventory.txt
+            --output text >> .circleci/ansible/inventory.txt
       - persist_to_workspace:
-          root: /tmp/saveme
+          root: .circleci/ansible/
           paths:
             - inventory.txt
       - run:
@@ -223,11 +223,11 @@ jobs:
             apk add --update ansible
             apk add --update bash
             ansible-galaxy install weareinteractive.environment
-      - run:
-          name: Make inventory for Ansible
-          command: |
-            echo "[backend]" > /tmp/saveme/inventory.txt
-            cat /tmp/saveme/inventory.txt
+      # - run:
+      #     name: Make inventory for Ansible
+      #     command: |
+      #       echo "[backend]" > .circleci/ansible/inventory.txt
+      #       cat /tmp/saveme/inventory.txt >>
       - write-envvars-file
       - run:
           name: Run playbook
