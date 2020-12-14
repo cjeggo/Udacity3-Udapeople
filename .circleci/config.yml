@@ -196,7 +196,7 @@ jobs:
           when: on_fail        
       - run:
           name: Save old bucket arn
-          command: echo "arn:aws:s3:::`aws s3 ls | awk '{ print $3 } ' | grep udapeople-frontend-deployment`" > /project/old_s3arn.txt
+          command: echo "arn:aws:s3:::`aws s3 ls | awk '{ print $3 } ' | grep udapeople-frontend-deployment`" > /tmp/saveme/old_s3arn.txt
       - persist_to_workspace:
           root: /tmp/saveme
           paths:
