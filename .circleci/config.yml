@@ -269,12 +269,13 @@ jobs:
     steps:
       - checkout
       - write-envvars-file
-      - npm-install:
-          end: "backend"
+      # - npm-install:
+      #     end: "backend"
       - run:
           name: Run DB Migration
           command: |
             cd backend
+            npm i
             npm run migrations
       - run:
           name: Log to memstash
