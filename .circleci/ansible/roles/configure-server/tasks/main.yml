@@ -1,18 +1,9 @@
 - name: "Install Deps"
   become: yes
   shell: |
-      apt-get update
-      apt-get -y install build-essential
-      apt-get -y install python curl openssl libssl-dev
-      git clone https://github.com/joyent/node.git
-      cd node
-      git checkout v0.10.24
-      ./configure
-      make
-      sudo make install
-#    curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
-#    sudo apt -y upgrade
-#    sudo apt install -y nodejs
+   curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+   apt -y upgrade
+   apt install -y python nodejs
 
 # - name: "Install PM2"
 #   become: true
