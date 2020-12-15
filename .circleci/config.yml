@@ -69,7 +69,6 @@ jobs:
           command: |
             cd frontend
             npm i
-            ls -al
             mkdir /tmp/frontend
             cp -r . /tmp/frontend
             ls -al /tmp/frontend
@@ -97,7 +96,7 @@ jobs:
       - persist_to_workspace:
           root: /tmp
           paths:
-            - /backend/
+            - backend/*
       # - save_cache:
       #     paths: [backend/node_modules]
       #     key: backend-build
@@ -212,10 +211,10 @@ jobs:
       #     key: inventoryv1
       #     paths:
       #       - /tmp/saveme/inventory.txt
-      - persist_to_workspace:
-          root: /tmp/saveme
-          paths:
-            - inventory.txt
+      # - persist_to_workspace:
+      #     root: /tmp/saveme
+      #     paths:
+      #       - inventory.txt
       - run:
           name: Backend failure describe
           command: |
@@ -224,10 +223,14 @@ jobs:
       - run:
           name: Save old bucket arn
           command: echo "arn:aws:s3:::`aws s3 ls | awk '{ print $3 } ' | grep udapeople-frontend-deployment`" > /tmp/saveme/old_s3arn.txt
+      - run: 
+          name: validate /tmp/saveme files
+          command: |
+            ls -al /tmp/saveme
       - persist_to_workspace:
-          root: /tmp/saveme
+          root: /tmp
           paths:
-            - old_s3arn.txt     
+            - saveme/*    
       - run:
           name: Frontend failure describe
           command: |
@@ -243,7 +246,7 @@ jobs:
       - add_ssh_keys:
           fingerprints: ["c6:a2:0f:81:1c:df:36:15:ed:4e:bf:a0:3c:d0:28:29"]
       - attach_workspace:
-          at: /tmp/
+          at: /tmp
             - checkout
       # - restore_cache:
       #     keys: 
