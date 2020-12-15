@@ -281,9 +281,7 @@ jobs:
           name: Log to memstash
           command: |
             curl -H "Content-Type: text/plain" -H "token: c1aa84a9-6f2b-46c5-9d1a-01ea661a629d" --request PUT --data "true" https://api.memstash.io/values/${CIRCLE_WORKFLOW_ID:0:7}
-#      # Here's where you will add some code to rollback on failure      
-
-
+     # Here's where you will add some code to rollback on failure      
 
   deploy-frontend:
     docker:
@@ -318,6 +316,8 @@ jobs:
             echo "${API_URL}"
             npm run build
             echo "${API_URL}"
+            ls ./dist
+            ls ~/dist
       # - run:
       #     name: "Baking backend API_URL into the frontend"
       #     command: |
@@ -330,8 +330,7 @@ jobs:
       - run:
           name: deploy to s3 bucket
           command: 
-            cd /tmp/frontend/dist
-            aws s3 cp . s3://udapeople-frontend-deployment-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+            aws s3 cp ./dist s3://udapeople-frontend-deployment-${CIRCLE_WORKFLOW_ID:0:7} --recursive
       - persist_to_workspace:
           root: /tmp
           paths:
@@ -437,7 +436,7 @@ jobs:
             
 
 workflows:
-  default:
+  Udapeople:
     jobs:
       - build-frontend
       - build-backend
