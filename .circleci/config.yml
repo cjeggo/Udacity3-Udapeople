@@ -307,8 +307,10 @@ jobs:
             export BACKEND_IP=$(aws ec2 describe-instances --filters "Name=tag:project,Values=Udapeople-backend" \
             --filters "Name=instance-state-name,Values=running" \
             --query "Reservations[*].Instances[*].[PublicIpAddress]" \
-            --output text
+            --output text)
             export API_URL="http://${BACKEND_IP}:3030"
+            echo "${BACKEND_IP}"" > /tmp/saveme/backend-ip.txt
+            cat /tmp/saveme/backend-ip.txt
             echo "${API_URL}"
       - run:
           name: "Baking backend API_URL into the frontend"
@@ -323,6 +325,10 @@ jobs:
           command: 
             cd /tmp/frontend/dist
             aws s3 cp . s3://udapeople-frontend-deployment-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+      - persist_to_workspace:
+          root: /tmp
+          paths:
+            - saveme/* 
      
                     
 #   deploy-backend:
