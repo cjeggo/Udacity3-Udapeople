@@ -309,8 +309,6 @@ jobs:
             --query "Reservations[*].Instances[*].[PublicIpAddress]" \
             --output text)
             export API_URL="http://${BACKEND_IP}:3030"
-            echo "${BACKEND_IP}"" > /tmp/saveme/backend-ip.txt
-            cat /tmp/saveme/backend-ip.txt
             echo "${API_URL}"
       - run:
           name: "Baking backend API_URL into the frontend"
