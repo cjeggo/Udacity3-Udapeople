@@ -18,8 +18,8 @@
     state: directory
 
 - name: "Copy build"
-  copy:
-    src: /tmp/backend/
+  unarchive:
+    src: /tmp/backend/backend.tar.gz
     dest: /home/ubuntu/backend/
 
 # - name: "Copy package.json"

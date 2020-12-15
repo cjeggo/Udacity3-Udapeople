@@ -92,7 +92,7 @@ jobs:
           command: |
             mkdir /tmp/backend
             cd backend/ && npm i && npm run build
-            cp -r . /tmp/backend
+            tar -zcvf /tmp/backend/backend.tar.gz ./
       - persist_to_workspace:
           root: /tmp
           paths:
