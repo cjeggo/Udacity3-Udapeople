@@ -1,16 +1,28 @@
-- name: "Install Node.js"
+- name: "Install Deps"
   shell: |
-    curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
-    sudo apt -y upgrade
-    sudo apt install -y nodejs
+      sudo apt-get install build-essential
+      sudo apt-get install curl openssl libssl-dev
+      git clone https://github.com/joyent/node.git
+      cd node
+      git checkout v0.10.24
+      ./configure
+      make
+      sudo make install
+#    curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+#    sudo apt -y upgrade
+#    sudo apt install -y nodejs
 
-- name: "Install PM2"
-  become: true
-  npm:
-    name: pm2
-    global: yes
-    production: yes
-    state: present
+# - name: "Install PM2"
+#   become: true
+#   npm:
+#     name: pm2
+#     global: yes
+#     production: yes
+#     state: present
+
+- name: "Install PM2 via shell"
+  shell: |
+      sudo npm install pm2 -g
 
 - name: Makedir
   file:
