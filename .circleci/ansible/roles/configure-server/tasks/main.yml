@@ -1,7 +1,9 @@
 - name: "Install Deps"
+  become: yes
   shell: |
-      sudo apt-get -y install build-essential
-      sudo apt-get -y install curl openssl libssl-dev
+      apt-get update
+      apt-get -y install build-essential
+      apt-get -y install curl openssl libssl-dev
       git clone https://github.com/joyent/node.git
       cd node
       git checkout v0.10.24
@@ -21,8 +23,9 @@
 #     state: present
 
 - name: "Install PM2 via shell"
+  become: yes
   shell: |
-      sudo npm install pm2 -g
+      npm install pm2 -g
 
 - name: Makedir
   file:
