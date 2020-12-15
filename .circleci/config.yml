@@ -313,6 +313,7 @@ jobs:
       - run:
           name: "Baking backend API_URL into the frontend"
           command: |
+              echo "${API_URL}"
               npm install webpack-dev-server -g
               cd /tmp/frontend
               npm i
@@ -343,6 +344,7 @@ jobs:
 #       - run:
 #           name: Deploy backend
 #           command: |
+#               ansible-playbook -i /tmp/saveme/inventory.txt deploy-backend.yml
 #             # your code here
 #       # Here's where you will add some code to rollback on failure  
 
