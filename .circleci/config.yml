@@ -310,15 +310,24 @@ jobs:
             --output text)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
-      - run:
-          name: "Baking backend API_URL into the frontend"
-          command: |
-              echo "${API_URL}"
-              npm install webpack-dev-server -g
-              cd /tmp/frontend
-              npm i
-              npm run build
-              npm audit fix --audit-level=critical --force
+            npm install webpack-dev-server -g
+            echo "${API_URL}"
+            cd /tmp/frontend
+            echo "${API_URL}"
+            npm i
+            echo "${API_URL}"
+            npm run build
+            echo "${API_URL}"
+            npm audit fix --audit-level=critical --force
+      # - run:
+      #     name: "Baking backend API_URL into the frontend"
+      #     command: |
+      #         echo "${API_URL}"
+      #         npm install webpack-dev-server -g
+      #         cd /tmp/frontend
+      #         npm i
+      #         npm run build
+      #         npm audit fix --audit-level=critical --force
       - run:
           name: deploy to s3 bucket
           command: 
