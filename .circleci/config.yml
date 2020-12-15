@@ -201,10 +201,6 @@ jobs:
             aws ec2 describe-instances --filters "Name=tag:project,Values=Udapeople-backend" \
             --filters "Name=instance-state-name,Values=running" \
             --query "Reservations[*].Instances[*].[PublicIpAddress]" \
-            --output text | grep -v None
-            aws ec2 describe-instances --filters "Name=tag:project,Values=Udapeople-backend" \
-            --filters "Name=instance-state-name,Values=running" \
-            --query "Reservations[*].Instances[*].[PublicIpAddress]" \
             --output text >> /tmp/saveme/inventory.txt
             cat /tmp/saveme/inventory.txt
       # - save_cache:
@@ -247,7 +243,7 @@ jobs:
           fingerprints: ["c6:a2:0f:81:1c:df:36:15:ed:4e:bf:a0:3c:d0:28:29"]
       - attach_workspace:
           at: /tmp
-            - checkout
+      - checkout
       # - restore_cache:
       #     keys: 
       #     - backend-build
