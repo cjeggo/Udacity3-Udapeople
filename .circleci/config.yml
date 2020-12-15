@@ -318,7 +318,6 @@ jobs:
             echo "${API_URL}"
             npm run build
             echo "${API_URL}"
-            npm audit fix --audit-level=critical --force
       # - run:
       #     name: "Baking backend API_URL into the frontend"
       #     command: |
@@ -337,25 +336,32 @@ jobs:
           root: /tmp
           paths:
             - saveme/* 
+      - destroy-environment
      
                     
-#   deploy-backend:
-#     docker:
-#       # Docker image here that supports Ansible
-#     steps:
-#       # Checkout code from git
-#       # Add ssh keys with fingerprint
-#       # attach workspace
-#       - run:
-#           name: Install dependencies
-#           command: |
-#             # your code here
-#       - run:
-#           name: Deploy backend
-#           command: |
-#               ansible-playbook -i /tmp/saveme/inventory.txt deploy-backend.yml
-#             # your code here
-#       # Here's where you will add some code to rollback on failure  
+  deploy-backend:
+    docker:
+      - image: alpine:latest
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints: ["c6:a2:0f:81:1c:df:36:15:ed:4e:bf:a0:3c:d0:28:29"]
+      - attach_workspace:
+          at: /tmp
+      - checkout
+      - run:
+          name: Install Ansible
+          command: |
+            apk add --update ansible
+            apk add --update bash
+            ansible-galaxy install weareinteractive.environment
+      - run:
+          name: Run playbook
+          command: |
+            cat /tmp/saveme/inventory.txt
+            cd .circleci/ansible
+            ansible-playbook -i /tmp/saveme/inventory.txt deploy-backend.yml
+
 
 #   smoke-test:
 #     docker:
@@ -380,6 +386,21 @@ jobs:
 #             # your code here
 #       # Here's where you will add some code to rollback on failure  
 
+  cloudfront-update:
+    executor: aws-cli/default
+    steps:
+      - aws-cli/setup:
+          profile-name: default
+      - checkout
+      - run:
+          name: Promote to production
+          command: |
+              aws cloudformation deploy \
+                --template-file .circleci/files/cloudfront.yml \
+                --stack-name udapeople-cloudfront \
+                --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
+          no_output_timeout: 20m
+      - destroy-environment
 #   cloudfront-update:
 #     docker:
 #       # Docker image here that supports AWS CLI
@@ -440,11 +461,11 @@ workflows:
           requires: [configure-infrastructure]
       - deploy-frontend:
           requires: [run-migrations]
-      # - deploy-backend:
-      #     requires: [run-migrations]
+      - deploy-backend:
+          requires: [run-migrations]
       # - smoke-test:
       #     requires: [deploy-backend, deploy-frontend]
-      # - cloudfront-update:
-      #     requires: [smoke-test]
+      - cloudfront-update:
+          requires: [smoke-test]
       # - cleanup:
       #     requires: [cloudfront-update]
