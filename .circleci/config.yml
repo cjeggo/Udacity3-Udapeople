@@ -263,44 +263,66 @@ jobs:
             cd .circleci/ansible
             ansible-playbook -i /tmp/saveme/inventory.txt configure-server.yml
     
-
-#   run-migrations:
-#     docker:
-#       # Docker image here that supports NodeJS
-#     steps:
-#       # Checkout code from git
-#       - run:
-#           name: Run migrations
-#           command: |
-#             # Your code here
-#             exit 1
-#       - run:
-#           name: Send migration results to memstash
-#           command: |
-#             # Your code here
-#             exit 1
+  run-migrations:
+    docker:
+      - image: circleci/node
+    steps:
+      - checkout
+      - write-envvars-file
+      - npm-install:
+          end: "backend"
+      - run:
+          name: Run DB Migration
+          command: |
+            cd backend
+            npm run migrations
+      - run:
+          name: Log to memstash
+          command: |
+            curl -H "Content-Type: text/plain" -H "token: c1aa84a9-6f2b-46c5-9d1a-01ea661a629d" --request PUT --data "true" https://api.memstash.io/values/${CIRCLE_WORKFLOW_ID:0:7}
 #      # Here's where you will add some code to rollback on failure      
 
-#   deploy-frontend:
-#     docker:
-#       # Docker image here that supports AWS CLI
-#     steps:
-#       # Checkout code from git
-#       - run:
-#           name: Install dependencies
-#           command: |
-#             # your code here
-#       - run:
-#           name: Get backend url
-#           command: |
-#             # your code here
-#             export API_URL="http://${BACKEND_IP}:3030"
-#             echo "${API_URL}"
-#       - run:
-#           name: Deploy frontend objects
-#           command: |
-#             # your code here
-#       # Here's where you will add some code to rollback on failure      
+
+
+  deploy-frontend:
+    docker:
+        - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /tmp
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --no-cache nodejs
+            apk add --no-cache npm
+            apk add --no-cache bash
+            apk add --no-cache curl
+            pip install awscli
+      - run:
+          name: Get backend url
+          command: |
+            export BACKEND_IP=$(aws ec2 describe-instances --filters "Name=tag:project,Values=Udapeople-backend" \
+            --filters "Name=instance-state-name,Values=running" \
+            --query "Reservations[*].Instances[*].[PublicIpAddress]" \
+            --output text
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "${API_URL}"
+      - run:
+          name: "Baking backend API_URL into the frontend"
+          command: |
+              npm install webpack-dev-server -g
+              cd /tmp/frontend
+              npm i
+              npm run build
+              npm audit fix --audit-level=critical --force
+      - run:
+          name: deploy to s3 bucket
+          command: 
+            cd /tmp/frontend/dist
+            aws s3 cp . s3://udapeople-frontend-deployment-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+     
                     
 #   deploy-backend:
 #     docker:
