@@ -69,8 +69,10 @@ jobs:
           command: |
             cd frontend
             npm i
+            ls -al
             mkdir /tmp/frontend
             cp -r . /tmp/frontend
+            ls -al /tmp/frontend
       - persist_to_workspace:
           root: /tmp
           paths:
