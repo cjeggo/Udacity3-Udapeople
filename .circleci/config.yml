@@ -67,12 +67,10 @@ jobs:
       - run:
           name: Build front-end
           command: |
-            mkdir /tmp/frontend
             cd frontend
             npm i
-            cp -r ./node_modules /tmp/frontend
       - persist_to_workspace:
-          root: /tmp
+          root: ~/
           paths:
             - /frontend/node_modules
       # - save_cache:
