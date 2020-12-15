@@ -13,12 +13,13 @@
 #     npm install 
     
 - name: "Build"
+  become: yes
   shell: |
     cd /home/ubuntu/backend
     npm run build
     
 - name: "Run it"
-  become: true
+  become: yes
   shell: |
     cd /home/ubuntu/backend 
     pm2 start .
