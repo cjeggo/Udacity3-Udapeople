@@ -18,8 +18,8 @@
     state: directory
 
 - name: "Copy build"
-  unarchive:
-    src: backend/node_modules
+  copy:
+    src: /tmp/backend/
     dest: /home/ubuntu/backend/
 
 # - name: "Copy package.json"

@@ -62,43 +62,56 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      - restore_cache:
-          keys: [frontend-build]
+      # - restore_cache:
+      #     keys: [frontend-build]
       - run:
           name: Build front-end
           command: |
+            mkdir /tmp/frontend
             cd frontend
             npm i
-      - save_cache:
-          paths: [frontend/node_modules]
-          key: frontend-build
+            cp -r ./node_modules /tmp/frontend
+      - persist_to_workspace:
+          root: /tmp
+          paths:
+            - /frontend/node_modules
+      # - save_cache:
+      #     paths: [frontend/node_modules]
+      #     key: frontend-build
 
   build-backend:
     docker:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      - restore_cache:
-          keys: [backend-build]
+      # - restore_cache:
+      #     keys: [backend-build]
       - run:
           name: Back-end build
           command: |
-             cd backend/ && npm i && npm run build
-      - save_cache:
-          paths: [backend/node_modules]
-          key: backend-build
+            mkdir /tmp/backend
+            cd backend/ && npm i && npm run build
+            cp -r . /tmp/backend
+      - persist_to_workspace:
+          root: /tmp
+          paths:
+            - /backend/
+      # - save_cache:
+      #     paths: [backend/node_modules]
+      #     key: backend-build
 
   test-frontend:
     docker:
       - image: circleci/node
     steps:
       - checkout
-      - restore_cache:
-          key: frontend-build
+      # - restore_cache:
+      #     key: frontend-build
       - run:
           name: test-frontend
           command: |
             cd frontend
+            npm i
             mkdir -p ./reports/junit/
             npm install --save-dev jest-junit jest-junit-reporter
             ./node_modules/.bin/jest --ci --runInBand --reporters=default --reporters=jest-junit
@@ -113,12 +126,13 @@ jobs:
       - image: circleci/node
     steps:
       - checkout
-      - restore_cache:
-          key: backend-build
+      # - restore_cache:
+      #     key: backend-build
       - run:
           name: Test Backend
           command: |
             cd backend
+            npm i
             mkdir -p ./reports/junit/
             npm install --save-dev jest-junit jest-junit-reporter
             ./node_modules/.bin/jest --ci --runInBand --reporters=default --reporters=jest-junit
@@ -133,8 +147,8 @@ jobs:
       - image: circleci/node
     steps:
       - checkout
-      - restore_cache:
-          key: frontend-build
+      # - restore_cache:
+      #     key: frontend-build
       - run:
           name: Audit Frontend
           command: |
@@ -147,8 +161,8 @@ jobs:
       - image: circleci/node
     steps:
       - checkout
-      - restore_cache:
-          key: backend-build
+      # - restore_cache:
+      #     key: backend-build
       - run:
           name: Audit Backend
           command: |
@@ -184,16 +198,18 @@ jobs:
           command: |
             echo "[backend]" > /tmp/saveme/inventory.txt
             aws ec2 describe-instances --filters "Name=tag:project,Values=Udapeople-backend" \
+            --filters "Name=instance-state-name,Values=running" \
             --query "Reservations[*].Instances[*].[PublicIpAddress]" \
             --output text | grep -v None
             aws ec2 describe-instances --filters "Name=tag:project,Values=Udapeople-backend" \
+            --filters "Name=instance-state-name,Values=running" \
             --query "Reservations[*].Instances[*].[PublicIpAddress]" \
-            --output text | grep -v None >> /tmp/saveme/inventory.txt
+            --output text >> /tmp/saveme/inventory.txt
             cat /tmp/saveme/inventory.txt
-      - save_cache:
-          key: inventory
-          paths:
-            - /tmp/saveme/inventory.txt
+      # - save_cache:
+      #     key: inventoryv1
+      #     paths:
+      #       - /tmp/saveme/inventory.txt
       - persist_to_workspace:
           root: /tmp/saveme
           paths:
@@ -224,13 +240,14 @@ jobs:
       - checkout
       - add_ssh_keys:
           fingerprints: ["c6:a2:0f:81:1c:df:36:15:ed:4e:bf:a0:3c:d0:28:29"]
-      # - attach_workspace:
-      #     at: /tmp/saveme
-      #       - checkout
-      - restore_cache:
-          keys: 
-          - backend-build
-          - inventory
+      - attach_workspace:
+          at: /tmp/
+            - checkout
+      # - restore_cache:
+      #     keys: 
+      #     - backend-build
+      #     - inventoryv1
+      # - checkout
       - run:
           name: Install Ansible
           command: |
@@ -364,17 +381,17 @@ workflows:
     jobs:
       - build-frontend
       - build-backend
-      # - test-frontend:
-      #     requires: [build-frontend]
-      # - test-backend:
-      #     requires: [build-backend]
-      # - scan-backend:
-      #     requires: [build-backend]
-      # - scan-frontend:
-      #     requires: [build-frontend]
+      - test-frontend:
+          requires: [build-frontend]
+      - test-backend:
+          requires: [build-backend]
+      - scan-backend:
+          requires: [build-backend]
+      - scan-frontend:
+          requires: [build-frontend]
       - deploy-infrastructure:
-          # requires: [test-frontend, test-backend, scan-frontend, scan-backend]
-          requires: [build-frontend, build-backend]
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          # requires: [build-frontend, build-backend]
           # filters:
           #   branches:
           #     only: [test-feature-branch]
