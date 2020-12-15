@@ -1,7 +1,7 @@
 - name: "Install Deps"
   shell: |
-      sudo apt-get install build-essential
-      sudo apt-get install curl openssl libssl-dev
+      sudo apt-get -y install build-essential
+      sudo apt-get -y install curl openssl libssl-dev
       git clone https://github.com/joyent/node.git
       cd node
       git checkout v0.10.24
